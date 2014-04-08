@@ -147,7 +147,7 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
      *
      * @return void
      */
-    protected function appendClass(array &$attributes, $class)
+    public function appendClass(array &$attributes, $class)
     {
         $class = implode(' ', (array)$class);
 

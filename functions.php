@@ -49,3 +49,20 @@ if ( ! function_exists('columnize'))
         return $result;
     }
 }
+
+if ( ! function_exists('vary_parameter'))
+{
+    function vary_parameter($parameters, $parameter, $value, $default = null)
+    {
+        if ($value == $default)
+        {
+            unset($parameters[$parameter]);
+        }
+        else
+        {
+            $parameters[$parameter] = $value;
+        }
+
+        return $parameters;
+    }
+}

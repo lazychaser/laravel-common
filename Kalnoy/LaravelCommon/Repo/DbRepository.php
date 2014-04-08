@@ -103,7 +103,7 @@ class DbRepository implements RepositoryInterface {
 
         if (null === $model = $query->first())
         {
-            throw with(new ModelNotFoundException)->setModel($this->model);
+            throw with(new ModelNotFoundException)->setModel(get_class($this->model));
         }
 
         return $model;

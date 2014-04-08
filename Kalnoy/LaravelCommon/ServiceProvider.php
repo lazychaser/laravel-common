@@ -7,6 +7,11 @@ namespace Kalnoy\LaravelCommon;
  */
 class ServiceProvider extends \Illuminate\Support\ServiceProvider {
 
+    public function register()
+    {
+        
+    }
+
     /**
      * Boot a service provider.
      *
@@ -17,29 +22,6 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider {
         $this->extendValidator();
 
         include __DIR__ . '/../../functions.php';
-    }
-
-    /**
-     * Register a service provider.
-     *
-     * @return void
-     */
-    public function register()
-    {
-        $this->registerHtmlBuilder();
-    }
-
-    /**
-     * Register custom html builder.
-     *
-     * @return void
-     */
-    public function registerHtmlBuilder()
-    {
-        $this->app->bindShared('html', function ($app)
-        {
-            return new Html\HtmlBuilder($app['url'], $app['request']);
-        });
     }
 
     /**
