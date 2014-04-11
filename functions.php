@@ -66,3 +66,13 @@ if ( ! function_exists('vary_parameter'))
         return $parameters;
     }
 }
+
+if ( ! function_exists('cache_key'))
+{
+    function cache_key(array $options)
+    {
+        ksort($options);
+
+        return md5(http_build_query($options));
+    }
+}
