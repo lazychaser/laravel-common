@@ -4,6 +4,7 @@ namespace Kalnoy\LaravelCommon\Html;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\UrlGenerator;
+use Illuminate\Support\ArrayableInterface;
 
 class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
 
@@ -201,5 +202,50 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
     public function rur()
     {
         return '<span class="currency currency-rur">&#8399;</span>';
+    }
+
+    /**
+     * Render alert.
+     *
+     * @param string $message
+     * @param string $status
+     * @param bool   $dissmissable
+     *
+     * @return string
+     */
+    public function alert($message, $status = 'success', $dissmissable = true)
+    {
+        $message = $this->entities($message);
+
+        if ($dissmissable)
+        {
+            $message = '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' . $message;
+        }
+
+        return '<div class="alert alert-'.$status.'">'.$message.'</div>';
+    }
+
+    /**
+     * Render error list.
+     *
+     * @param mixed $messages
+     *
+     * @return string
+     */
+    public function errors($messages)
+    {
+        if ($messages instanceof ArrayableInterface)
+        {
+            $messages = $messages->toArray();
+        }
+
+        $html = '<ul class="errors">';
+
+        foreach ($messages as $message)
+        {
+            $html .= '<li>'.$message.'</li>';
+        }
+
+        return $html.'</ul>';
     }
 }

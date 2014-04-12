@@ -3,7 +3,6 @@
 namespace Kalnoy\LaravelCommon\Html;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Html\FormBuilder;
 
 class HtmlServiceProvider extends ServiceProvider {
 
