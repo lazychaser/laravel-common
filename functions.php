@@ -76,3 +76,11 @@ if ( ! function_exists('cache_key'))
         return md5(http_build_query($options));
     }
 }
+
+if ( ! function_exists('normalize_string'))
+{
+    function normalize_string($value)
+    {
+        return mb_strtolower(trim($value));
+    }
+}
