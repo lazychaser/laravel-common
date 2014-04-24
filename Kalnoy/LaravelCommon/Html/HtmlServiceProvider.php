@@ -36,7 +36,7 @@ class HtmlServiceProvider extends ServiceProvider {
     {
         $this->app->bindShared('html', function ($app)
         {
-            return new HtmlBuilder($app['url'], $app['request']);
+            return new HtmlBuilder($app['url'], $app['request'], $app['session.store']);
         });
     }
 

@@ -15,11 +15,14 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
      */
     protected $request;
 
-    public function __construct(UrlGenerator $url, Request $request)
+    protected $session;
+
+    public function __construct(UrlGenerator $url, Request $request, $session)
     {
         parent::__construct($url);
 
         $this->request = $request;
+        $this->session = $session;
     }
 
     /**
@@ -247,5 +250,20 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
         }
 
         return $html.'</ul>';
+    }
+
+    public function alerts()
+    {
+        $html = '';
+
+        foreach ([ 'success', 'danger', 'warning', 'info' ] as $alert)
+        {
+            if ($this->session->has($alert))
+            {
+                $html .= $this->alert($this->session->get($alert), $alert, true).PHP_EOL;
+            }
+        }
+
+        return $html;
     }
 }
