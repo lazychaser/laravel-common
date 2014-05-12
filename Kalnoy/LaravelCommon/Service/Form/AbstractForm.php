@@ -25,7 +25,7 @@ abstract class AbstractForm {
      *
      * @return bool
      */
-    protected function valid(array $input)
+    public function valid(array $input)
     {
         return $this->validator->with($input)->passes();
     }

@@ -4,7 +4,7 @@ namespace Kalnoy\LaravelCommon\Html;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\UrlGenerator;
-use Illuminate\Support\ArrayableInterface;
+use Illuminate\Support\Contracts\ArrayableInterface;
 
 class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
 
@@ -26,6 +26,19 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
     }
 
     /**
+     * Append a class name to the options.
+     *
+     * @param array  $options
+     * @param string $class
+     *
+     * @return void
+     */
+    public function appendClass(array &$options, $class)
+    {
+        $options['class'] = isset($options['class']) ? $options['class'].' '.$class : $class;
+    }
+
+    /**
      * Generate a breadcrumb markup.
      *
      * @param array $items
@@ -35,150 +48,21 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
      */
     public function breadcrumb(array $items, $main = 'Main')
     {
-        $html = PHP_EOL . $this->menuItem($main, $this->url->to('/'));
+        $html = '<li><a href="'.$this->url->to('/').'">'.$this->entities($main).'</a></li>';
 
         foreach ($items as $label => $url)
         {
             if (is_numeric($label))
             {
-                $label = $url;
-                $url = null;
+                $html .= '<li class="active">'.$this->entities($url).'</li>';
             }
-
-            $html .= $this->menuItem($label, $url);
+            else
+            {
+                $html .= '<li><a href="'.$url.'">'.$this->entities($label).'</a>';
+            }
         }
 
-        return '<ol class="breadcrumb">' . $html . '</ol>';
-    }
-
-    /**
-     * Generate a list of menu items.
-     *
-     * @param array $items
-     *
-     * @return string
-     */
-    public function menuItems(array $items)
-    {
-        $html = '';
-
-        foreach ($items as $label => $url)
-        {
-            list($label, $url) = $this->getLabelAndUrl($label, $url);
-
-            $html .= $this->menuItem($label, $url);
-        }
-
-        return $html;
-    }
-
-    /**
-     * Generate a list of menu items with maximum items number visible.
-     *
-     * @param array  $items
-     * @param int    $limit
-     * @param string $limitLabel
-     *
-     * @return string
-     */
-    public function menuItemsWithLimit(array $items, $limit, $limitLabel = 'Show more')
-    {
-        $html = '';
-        $index = 0;
-        $hasMore = count($items) > $limit;
-
-        foreach ($items as $label => $url)
-        {
-            list($label, $url) = $this->getLabelAndUrl($label, $url);
-
-            $html .= $this->menuItem($label, $url, $hasMore && ++$index >= $limit ? [ 'class' => 'hidden' ] : []);
-        }
-
-        if ($hasMore) $html .= $this->menuItem($limitLabel, '#', [ 'class' => 'show-more' ]);
-
-        return $html;
-    }
-
-    /**
-     * Get a label and a url.
-     *
-     * @param string $label
-     * @param string $url
-     *
-     * @return array
-     */
-    protected function getLabelAndUrl($label, $url)
-    {
-        if (is_numeric($label))
-        {
-            $label = $url;
-            $url = '#';
-        }
-
-        return [ $label, $url ];
-    }
-
-    /**
-     * Generate a menu item.
-     *
-     * @param string      $label
-     * @param string|null $url
-     * @param array       $attributes
-     *
-     * @return string
-     */
-    public function menuItem($label, $url = null, array $attributes = [])
-    {
-        $label = $this->entities($label);
-        
-        if ($this->isActiveUrl($url)) $this->appendClass($attributes, 'active');
-
-        if ($url)
-        {
-            $label = '<a href="' . $url . '">' . $label . '</a>';
-        }
-
-        $attributes = $this->attributes($attributes);
-
-        return "<li{$attributes}>{$label}</li>" . PHP_EOL;
-    }
-
-    /**
-     * Append a class name to the attributes array.
-     *
-     * @param array        $attributes
-     * @param string|array $class
-     *
-     * @return void
-     */
-    public function appendClass(array &$attributes, $class)
-    {
-        $class = implode(' ', (array)$class);
-
-        $attributes['class'] = isset($attributes['class']) ? $attributes['class'] . ' ' . $class : $class;
-    }
-
-    /**
-     * Get whether a url is active.
-     *
-     * @param string $url
-     *
-     * @return bool
-     */
-    public function isActiveUrl($url)
-    {
-        if ( ! $url || $url === '#') return false;
-
-        // Check if url leads to the main page
-        if ($url === $this->request->root())
-        {
-            return $this->request->path() === '/';
-        }
-
-        // Remove query string
-        $url = preg_replace('/\?.*/', '', $url) . '*';
-
-        return str_is($url, $this->request->url());
+        return '<ol class="breadcrumb">'.$html.'</ol>';
     }
 
     /**
@@ -239,7 +123,7 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
     {
         if ($messages instanceof ArrayableInterface)
         {
-            $messages = $messages->toArray();
+            $messages = array_flatten($messages->toArray());
         }
 
         $html = '<ul class="errors">';
@@ -252,15 +136,24 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
         return $html.'</ul>';
     }
 
-    public function alerts()
+    /**
+     * Render a list of alerts.
+     *
+     * @param string|null $prefix
+     *
+     * @return string
+     */
+    public function alerts($prefix = null)
     {
         $html = '';
 
         foreach ([ 'success', 'danger', 'warning', 'info' ] as $alert)
         {
-            if ($this->session->has($alert))
+            $key = $prefix ? $prefix.$alert : $alert;
+
+            if ($value = $this->session->get($key))
             {
-                $html .= $this->alert($this->session->get($alert), $alert, true).PHP_EOL;
+                $html .= $this->alert($value, $alert, true).PHP_EOL;
             }
         }
 

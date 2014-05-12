@@ -15,7 +15,7 @@ trait Sluggable {
      */
     public function bySlug($slug)
     {
-        return $this->findModel(function ($q) use($slug)
+        return $this->findModel(function ($q) use ($slug)
         {
             $q->where($this->slugAttribute, '=', $slug);
         });
