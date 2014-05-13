@@ -84,3 +84,11 @@ if ( ! function_exists('normalize_string'))
         return mb_strtolower(trim($value));
     }
 }
+
+if ( ! function_exists('class_if'))
+{
+    function class_if($bool, $class)
+    {
+        return $bool ? $class : '';
+    }
+}
