@@ -3,7 +3,7 @@
 namespace Kalnoy\LaravelCommon\Html;
 
 use Illuminate\Http\Request;
-use Illuminate\Html\HtmlBuilder;
+// use Illuminate\Html\HtmlBuilder;
 use Illuminate\Routing\UrlGenerator;
 
 /**
@@ -119,6 +119,7 @@ class MenuBuilder {
     public function item($label, array $options = [])
     {
         $href = $this->getHref($options);
+        $link = $this->getLink($href, $label, isset($options['items']));
 
         $attributes = array_except($options, $this->reserved);
 
@@ -129,9 +130,12 @@ class MenuBuilder {
 
         $attributes = $this->html->attributes($attributes);
 
-        $html = '<li'.$attributes.'>'.$this->getLink($href, $label);
+        $html = '<li'.$attributes.'>'.$link;
 
-        if (isset($options['items'])) $html .= $this->render($options['items']);
+        if (isset($options['items']))
+        {
+            $html .= $this->render($options['items'], [ 'class' => 'dropdown-menu' ]);
+        }
 
         return $html . '</li>';
     }
@@ -144,9 +148,21 @@ class MenuBuilder {
      *
      * @return string
      */
-    protected function getLink($href, $label)
+    protected function getLink($href, $label, $isDropdown)
     {
-        return '<a href="'.$href.'">'.$this->html->entities($label).'</a>';
+        $attributes = [];
+
+        if ($isDropdown)
+        {
+            $attributes['class'] = 'dropdown-toggle';
+            $attributes['data-toggle'] = 'dropdown';
+        }
+
+        $attributes['href'] = $href;
+
+        $caret = $isDropdown ? '<span class="caret"></span>' : '';
+
+        return '<a'.$this->html->attributes($attributes).'>'.$this->html->entities($label).$caret.'</a>';
     }
 
     /**
