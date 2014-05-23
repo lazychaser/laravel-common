@@ -151,6 +151,14 @@ class DbRepository implements RepositoryInterface {
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function all()
+    {
+        return $this->newQuery()->get();
+    }
+
+    /**
      * Return new filtered query.
      *
      * @param array    $options

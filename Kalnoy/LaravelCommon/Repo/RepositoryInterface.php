@@ -26,6 +26,13 @@ interface RepositoryInterface {
     public function select($columns);
 
     /**
+     * Get all items.
+     * 
+     * @return \Illuminate\Database\Eloquent\Model[]
+     */
+    public function all();  
+
+    /**
      * Find a model by a id.
      *
      * @param mixed $id
