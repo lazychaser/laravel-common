@@ -3,8 +3,9 @@
 namespace Kalnoy\LaravelCommon\Service\Form;
 
 use Kalnoy\LaravelCommon\Service\Validation\ValidableInterface;
+use Kalnoy\LaravelCommon\Events\EventsProvider;
 
-abstract class AbstractForm {
+abstract class AbstractForm implements EventsProvider {
 
     /**
      * The validator.
@@ -12,6 +13,11 @@ abstract class AbstractForm {
      * @var \App\Service\Validation\ValidableInterface
      */
     protected $validator;
+
+    /**
+     * The list of raised events.
+     */
+    protected $events = [];
 
     public function __construct(ValidableInterface $validator)
     {
@@ -38,5 +44,31 @@ abstract class AbstractForm {
     function errors()
     {
         return $this->validator->errors();
+    }
+
+    /**
+     * Raise an event.
+     *
+     * @param StdClass $event
+     *
+     * @return void
+     */
+    protected function raise($event)
+    {
+        $this->events[] = $event;
+    }
+
+    /**
+     * Get and clear events.
+     *
+     * @return array
+     */
+    public function events()
+    {
+        $events = $this->events;
+
+        $this->events = [];
+
+        return $events;
     }
 }

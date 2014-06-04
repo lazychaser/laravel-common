@@ -9,7 +9,18 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider {
 
     public function register()
     {
-        
+        $this->registerDispatcher();
+    }
+
+    /**
+     * Register an events dispatcher.
+     */
+    protected function registerDispatcher()
+    {
+        $this->app->bindShared('Kalnoy\LaravelCommon\Events\Dispatcher', function ($app)
+        {
+            return new Events\Dispatcher($app['events']);
+        });
     }
 
     /**
@@ -20,6 +31,8 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider {
     public function boot()
     {
         $this->extendValidator();
+
+        Mail\Notifier::setMailer($this->app['mailer']);
 
         include __DIR__ . '/../../functions.php';
     }
