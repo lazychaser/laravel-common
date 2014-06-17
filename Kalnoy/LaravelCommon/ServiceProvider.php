@@ -30,7 +30,10 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider {
      */
     public function boot()
     {
-        $this->extendValidator();
+        $this->app->resolving('validator', function ()
+        {
+            $this->extendValidator($validator);
+        });
 
         Mail\Notifier::setMailer($this->app['mailer']);
 
@@ -42,11 +45,9 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider {
      *
      * @return void
      */
-    protected function extendValidator()
+    protected function extendValidator($validator)
     {
-        $validator = $this->app['validator'];
-
-        $rules = [ 'slug' ];
+        $rules = [ 'slug', 'phone' ];
 
         foreach ($rules as $rule)
         {

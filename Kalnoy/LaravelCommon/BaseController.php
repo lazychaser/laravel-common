@@ -3,10 +3,13 @@
 namespace Kalnoy\LaravelCommon;
 
 use Response;
+use Session;
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
-use Illuminate\Support\JsonableInterface;
-use Illuminate\Support\ArrayableInterface;
+use Illuminate\Support\JsonableInterface as Jsonable;
+use Illuminate\Support\ArrayableInterface as Arrayable;
+use Illuminate\Support\Contracts\RenderableInterface as Renderable;
+use Illuminate\Http\RedirectResponse;
 
 /**
  * Base controller.
@@ -70,24 +73,36 @@ class BaseController extends Controller {
      * @param string $status
      * @param int    $code
      *
-     * @return Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function responseJson($data, $status = self::OK, $code = 200)
     {
-        if ($data instanceof JsonableInterface)
+        $type = 'data';
+
+        if ($data instanceof RedirectResponse)
+        {
+            $data = $data->getTargetUrl();
+            $type = 'redirect';
+        }
+        else if ($data instanceof Renderable)
+        {
+            $data = $data->render();
+            $type = 'html';
+        }
+        else if ($data instanceof Jsonable)
         {
             $data = $data->toJson();
         }
-        else if ($data instanceof ArrayableInterface)
+        else if ($data instanceof Arrayable)
         {
             $data = $data->toArray();
         }
-        else
+        else if (is_object($data))
         {
             $data = (string)$data;
         }
 
-        return Response::json(compact('data', 'status'), $code);
+        return Response::json(compact('status', 'type', 'data'), $code);
     }
 
 }

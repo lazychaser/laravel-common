@@ -92,3 +92,52 @@ if ( ! function_exists('class_if'))
         return $bool ? $class : '';
     }
 }
+
+define('PHONE_REGEX', '/^(\+[1-9][0-9]{0,2})([0-9]{10})$/');
+
+if ( ! function_exists('sanitize_phone'))
+{
+    /**
+     * Sanitize a phone number.
+     * 
+     * @param string $phone
+     * 
+     * @return string
+     */
+    function sanitize_phone($phone)
+    {
+        if (empty($phone)) return null;
+
+        // Remove any character that is not a number or plus sign
+        $phone = preg_replace('/[^+0-9]/', '', $phone);
+
+        // Remove all pluses except for first one
+        if (substr($phone, 0, 1) === '+')
+        {
+            $phone = '+'.str_replace('+', '', substr($phone, 1));
+        }
+
+        return $phone;
+    }
+}
+
+if ( ! function_exists('partial_phone'))
+{
+    /**
+     * Get phone partial representation that includes a contry code and last two
+     * digits.
+     * 
+     * @param string $phone
+     * 
+     * @return string
+     */
+    function partial_phone($phone)
+    {
+        if (($phone = sanitize_phone($phone)) and preg_match(PHONE_REGEX, $phone, $matches))
+        {
+            return $matches[1].'********'.substr($matches[2], -2);
+        }
+
+        return $phone;
+    }
+}

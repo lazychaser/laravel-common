@@ -25,12 +25,26 @@ abstract class BasicForm extends AbstractForm {
      */
     public function process(array $input)
     {
+        $input = $this->processInput($input);
+        
         if ($this->valid($input))
         {
             return $this->run($input);
         }
 
         return false;
+    }
+
+    /**
+     * Process input before validation.
+     * 
+     * @param array $input
+     * 
+     * @return array
+     */
+    protected function processInput(array $input)
+    {
+        return $input;
     }
 
 }

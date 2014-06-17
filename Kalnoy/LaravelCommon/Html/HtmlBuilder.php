@@ -106,6 +106,7 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
 
         if ($dissmissable)
         {
+            $status .= ' fade in';
             $message = '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' . $message;
         }
 
@@ -139,17 +140,17 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
     /**
      * Render a list of alerts.
      *
-     * @param string|null $prefix
+     * @param string|null $domain
      *
      * @return string
      */
-    public function alerts($prefix = null)
+    public function alerts($domain = null)
     {
         $html = '';
 
         foreach ([ 'success', 'danger', 'warning', 'info' ] as $alert)
         {
-            $key = $prefix ? $prefix.$alert : $alert;
+            $key = $domain ? $domain.'.'.$alert : $alert;
 
             if ($value = $this->session->get($key))
             {
@@ -158,5 +159,15 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
         }
 
         return $html;
+    }
+
+    /**
+     * Get an icon tag.
+     * 
+     * @return string
+     */
+    public function icon($name)
+    {
+        return '<span class="glyphicon glyphicon-'.$name.'"></span>';
     }
 }
