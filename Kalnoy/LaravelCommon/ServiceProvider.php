@@ -30,7 +30,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider {
      */
     public function boot()
     {
-        $this->app->resolving('validator', function ()
+        $this->app->resolving('validator', function ($validator)
         {
             $this->extendValidator($validator);
         });
