@@ -26,6 +26,22 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
     }
 
     /**
+     * Convert an array key name to the input name.
+     * 
+     * @param string $key
+     * 
+     * @return string
+     */
+    public function keyToName($key)
+    {
+        if (false === strpos($key, '.')) return $key;
+
+        $key = explode('.', $key);
+
+        return array_shift($key).'['.implode('][', $key).']';
+    }
+
+    /**
      * Append a class name to the options.
      *
      * @param array  $options

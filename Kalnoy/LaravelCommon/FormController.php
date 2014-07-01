@@ -8,7 +8,7 @@ use Input;
 use View;
 use Session;
 use Illuminate\Support\MessageBag;
-use Kalnoy\LaravelCommon\Service\Form\BasicForm;
+use Kalnoy\LaravelCommon\Service\Form\FormInterface;
 use Kalnoy\LaravelCommon\Events\Dispatcher;
 
 /**
@@ -38,44 +38,9 @@ abstract class FormController extends BaseController {
     protected $formView;
 
     /**
-     * The message that will be shown when form succeeded processing.
-     * 
-     * @var string
-     */
-    protected $successMessage;
-
-    /**
-     * The message that will be shown when form processing has failed.
-     * 
-     * @var string
-     */
-    protected $failureMessage;
-
-    /**
-     * A domain for alerts.
-     * 
-     * @var string
-     */
-    protected $alertDomain;
-
-    /**
-     * Alert type for success.
-     *
-     * @var string
-     */
-    protected $successAlert = 'success';
-
-    /**
-     * Alert type for failure.
-     * 
-     * @var string
-     */
-    protected $failureAlert = 'warning';
-
-    /**
      * Init controller.
      */
-    public function __construct(BasicForm $form)
+    public function __construct(FormInterface $form)
     {
         $this->form = $form;
     }
@@ -85,15 +50,63 @@ abstract class FormController extends BaseController {
      */
     public function process()
     {
-        if ($this->form->process(Input::all()))
-        {
-            // Dispatch form events.
-            $this->getDispatcher()->dispatch($this->form);
+        return $this->processForm($this->getInput())
+            ? (Request::ajax() ? $this->handleAjaxSuccess() : $this->handleSuccess())
+            : (Request::ajax() ? $this->handleAjaxFailure() : $this->handleFailure());
+    }
 
-            return Request::ajax() ? $this->handleAjaxSuccess() : $this->handleSuccess();
+    /**
+     * Process the form with the input.
+     * 
+     * @param array $input
+     * 
+     * @return bool
+     */
+    protected function processForm($input)
+    {
+        if ($this->form->process($input))
+        {
+            $this->dispatchEvents();
+
+            return true;
         }
 
-        return Request::ajax() ? $this->handleAjaxFailure() : $this->handleFailure();
+        return false;
+    }
+
+    /**
+     * Process form with the input and action.
+     * 
+     * @param array $input
+     * @param string $action
+     * 
+     * @return bool
+     */
+    protected function processAction(array $input, $action)
+    {
+        $input['action'] = $action;
+
+        return $this->processForm($input);
+    }
+
+    /**
+     * Get an input.
+     * 
+     * @return array
+     */
+    protected function getInput()
+    {
+        if ($id = $this->form->id()) return Input::get($id, []);
+
+        return Input::all();
+    }
+
+    /**
+     * Dispatch form events.
+     */
+    protected function dispatchEvents()
+    {
+        $this->getDispatcher()->dispatch($this->form);
     }
 
     /**
@@ -114,10 +127,7 @@ abstract class FormController extends BaseController {
         // Flash the input so that form could access it
         Input::flash();
 
-        if ($this->failureMessage)
-        {
-            Session::flash($this->getAlertId($this->failureAlert), $this->failureMessage);
-        }
+        $this->flashMessage();
 
         Session::ageFlashData();
 
@@ -129,16 +139,13 @@ abstract class FormController extends BaseController {
      */
     protected function handleAjaxSuccess()
     {
-        if ( ! $this->formView) return $this->responseJSON($this->successMessage);
+        if ( ! $this->formView) return $this->responseJSON($this->form->getAlert());
 
         // We consider that request input is processed so we should clear it
         // before rendering a view
         app('request')->request->replace();
 
-        if ($this->successMessage)
-        {
-            Session::flash($this->getAlertId($this->successAlert), $this->successMessage);
-        }
+        $this->flashMessage();
 
         Session::ageFlashData();
 
@@ -150,7 +157,7 @@ abstract class FormController extends BaseController {
      */
     protected function formView()
     {
-        return View::make($this->formView);
+        return View::make($this->formView)->with('form', $this->form);
     }
 
     /**
@@ -158,21 +165,8 @@ abstract class FormController extends BaseController {
      */
     protected function handleSuccess()
     {
-        $redirect = $this->successRedirect();
+        $this->flashMessage();
 
-        if ($this->successMessage)
-        {
-            $redirect->with($this->getAlertId($this->successAlert), $this->successMessage);
-        }
-
-        return $redirect;
-    }
-
-    /**
-     * Get a redirect when processing succeeded.
-     */
-    protected function successRedirect()
-    {
         return Redirect::back();
     }
 
@@ -181,30 +175,17 @@ abstract class FormController extends BaseController {
      */
     protected function handleFailure()
     {
-        $redirect = Redirect::back()->withInput();
-            
-        $redirect->withErrors($this->form->errors());
+        $this->flashMessage();
 
-        if ($this->failureMessage)
-        {
-            $redirect->with($this->getAlertId($this->failureAlert), $this->failureMessage);
-        }
-
-        return $redirect;
+        return Redirect::back()->withInput()->withErrors($this->form->errors());
     }
 
     /**
-     * Get alert id.
-     *
-     * @param string $alert
-     *
-     * @return string
+     * Flash form's message if any.
      */
-    public function getAlertId($alert)
+    protected function flashMessage()
     {
-        if ($this->alertDomain) $alert = $this->alertDomain.'.'.$alert;
-
-        return $alert;
+        if ($message = $this->form->message()) $message->flash();
     }
 
     /**

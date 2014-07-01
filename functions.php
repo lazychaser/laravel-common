@@ -1,6 +1,6 @@
 <?php
 
-if ( ! function_exists('cyrrilic_to_latin'))
+if ( ! function_exists('cyrillic_to_latin'))
 {
     function cyrillic_to_latin($string)
     {
@@ -93,7 +93,10 @@ if ( ! function_exists('class_if'))
     }
 }
 
-define('PHONE_REGEX', '/^(\+[1-9][0-9]{0,2})([0-9]{10})$/');
+if ( ! defined('PHONE_REGEX'))
+{
+    define('PHONE_REGEX', '/^(\+[1-9][0-9]{0,2})([0-9]{10})$/');
+}
 
 if ( ! function_exists('sanitize_phone'))
 {
@@ -139,5 +142,47 @@ if ( ! function_exists('partial_phone'))
         }
 
         return $phone;
+    }
+}
+
+if ( ! function_exists('partial_email'))
+{
+    /**
+     * Get a partial representation of the email.
+     * 
+     * @param string $email
+     * 
+     * @return string
+     */
+    function partial_email($email)
+    {
+        list($username, $domain) = explode('@', $email);
+        
+        $username = substr($username, 0, 2).'***';
+
+        return $username.'@'.$domain;
+    }
+}
+
+if ( ! function_exists('random_digits'))
+{
+    /**
+     * Generate a number of random digits.
+     * 
+     * @param int $digits
+     * 
+     * @return string
+     */
+    function random_digits($digits = 5)
+    {
+        return str_pad(rand(0, pow(10, $digits)-1), $digits, '0', STR_PAD_LEFT);
+    }
+}
+
+if ( ! function_exists('key_to_name'))
+{
+    function key_to_name($key)
+    {
+        return app('html')->keyToName($key);
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Support\JsonableInterface as Jsonable;
 use Illuminate\Support\ArrayableInterface as Arrayable;
 use Illuminate\Support\Contracts\RenderableInterface as Renderable;
 use Illuminate\Http\RedirectResponse;
+use Kalnoy\LaravelCommon\Service\Form\Alert;
 
 /**
  * Base controller.
@@ -88,6 +89,11 @@ class BaseController extends Controller {
         {
             $data = $data->render();
             $type = 'html';
+        }
+        else if ($data instanceof Alert)
+        {
+            $data = $data->toArray();
+            $type = 'alert';
         }
         else if ($data instanceof Jsonable)
         {

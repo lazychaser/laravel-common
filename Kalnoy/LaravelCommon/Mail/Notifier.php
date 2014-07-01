@@ -2,7 +2,8 @@
 
 namespace Kalnoy\LaravelCommon\Mail;
 
-use Illuminate\Mail\Mailer;
+use Mailer;
+use Closure;
 
 /**
  * Notifier.
@@ -10,16 +11,15 @@ use Illuminate\Mail\Mailer;
 class Notifier {
 
     /**
-     * @var \Illuminate\Mail\Mailer
+     * Send an email.
+     * 
+     * @param string $view
+     * @param array $data
+     * @param \Closure $callback
      */
-    protected static $mailer;
-
-    /**
-     * Set a mailer.
-     */
-    public static function setMailer($mailer)
+    public function send($view, $data, Closure $callback)
     {
-        static::$mailer = $mailer;
+        Mail::queue($view, $data, $callback);
     }
 
 }

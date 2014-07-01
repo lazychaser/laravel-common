@@ -27,13 +27,17 @@ abstract class BasicForm extends AbstractForm {
     {
         $input = $this->processInput($input);
         
-        if ($this->valid($input))
-        {
-            return $this->run($input);
-        }
+        if ($this->valid($input)) return $this->run($input);
+
+        $this->whenInvalid();
 
         return false;
     }
+
+    /**
+     * Called when form validation has failed.
+     */
+    protected function whenInvalid() {}
 
     /**
      * Process input before validation.

@@ -19,6 +19,18 @@ abstract class AbstractForm implements EventsProvider {
      */
     protected $events = [];
 
+    /**
+     * The id of the form.
+     * 
+     * @var string
+     */
+    protected $id;
+
+    /**
+     * Init form.
+     * 
+     * @param \Kalnoy\LaravelCommon\Service\Validation\ValidableInterface $validator
+     */
     public function __construct(ValidableInterface $validator)
     {
         $this->validator = $validator;
@@ -44,6 +56,16 @@ abstract class AbstractForm implements EventsProvider {
     function errors()
     {
         return $this->validator->errors();
+    }
+
+    /**
+     * Get an id of the form.
+     * 
+     * @return string
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 
     /**

@@ -10,6 +10,11 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider {
     public function register()
     {
         $this->registerDispatcher();
+
+        $this->app->resolving('validator', function ($validator)
+        {
+            $this->extendValidator($validator);
+        });
     }
 
     /**
@@ -30,13 +35,6 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider {
      */
     public function boot()
     {
-        $this->app->resolving('validator', function ($validator)
-        {
-            $this->extendValidator($validator);
-        });
-
-        Mail\Notifier::setMailer($this->app['mailer']);
-
         include __DIR__ . '/../../functions.php';
     }
 
@@ -51,7 +49,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider {
 
         foreach ($rules as $rule)
         {
-            $validator->extend($rule, 'Kalnoy\LaravelCommon\ValidationRules@' . $rule);
+            $validator->extend($rule, 'Kalnoy\LaravelCommon\ValidationRules@'.$rule);
         }
     }
 
