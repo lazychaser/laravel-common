@@ -41,11 +41,23 @@ trait SimpleForm {
      */
     public function process(array $input)
     {
-        if ($this->isValid($input)) return $this->run($input);
+        if ($this->isValid($input)) return $this->run($this->processInput($input)) !== false;
 
         $this->whenInvalid();
 
         return false;
+    }
+
+    /**
+     * Process the input before running action.
+     *
+     * @param array $input
+     *
+     * @return array
+     */
+    protected function processInput($input)
+    {
+        return $input;
     }
 
     /**

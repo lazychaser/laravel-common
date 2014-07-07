@@ -151,6 +151,13 @@ abstract class BaseForm implements FormInterface, EventsProvider {
         return $this->transformKeys($this->errors->getMessages());
     }
 
+    /**
+     * Add a form id to the fields.
+     *
+     * @param array $data
+     *
+     * @return array
+     */
     protected function transformKeys(array $data)
     {
         if ($this->id === null) return $data;
@@ -163,6 +170,17 @@ abstract class BaseForm implements FormInterface, EventsProvider {
         }
 
         return $result;
+    }
+
+    /**
+     * Add an error for the attribute.
+     *
+     * @param string $attribute
+     * @param string $message
+     */
+    protected function addError($attribute, $message)
+    {
+        $this->errors->add($attribute, trans($message));
     }
 
     /**

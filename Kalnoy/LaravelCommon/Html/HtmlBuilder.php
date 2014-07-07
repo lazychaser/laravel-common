@@ -17,6 +17,8 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
 
     protected $session;
 
+    protected static $alerts = [ 'success', 'danger', 'warning', 'info' ];
+
     public function __construct(UrlGenerator $url, Request $request, $session)
     {
         parent::__construct($url);
@@ -118,8 +120,6 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
      */
     public function alert($message, $status = 'success', $dissmissable = true)
     {
-        $message = $this->entities($message);
-
         if ($dissmissable)
         {
             $status .= ' fade in';
@@ -164,9 +164,9 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
     {
         $html = '';
 
-        foreach ([ 'success', 'danger', 'warning', 'info' ] as $alert)
+        foreach (self::$alerts as $alert)
         {
-            $key = $domain ? $domain.'.'.$alert : $alert;
+            $key = $this->getAlertKey($alert, $domain);
 
             if ($value = $this->session->get($key))
             {
@@ -175,6 +175,36 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
         }
 
         return $html;
+    }
+
+    /**
+     * Get whether session contains alerts of specified domain.
+     *
+     * @param string $domain
+     *
+     * @return bool
+     */
+    public function hasAlerts($domain = null)
+    {
+        foreach (self::$alerts as $key)
+        {
+            if ($this->session->get($this->getAlertKey($key, $domain))) return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the key of the alert.
+     *
+     * @param string $alert
+     * @param string $domain
+     *
+     * @return string
+     */
+    public function getAlertKey($alert, $domain)
+    {
+        return $domain ? $domain.'.'.$alert : $alert;
     }
 
     /**

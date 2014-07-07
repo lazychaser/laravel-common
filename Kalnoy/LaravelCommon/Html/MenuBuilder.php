@@ -161,8 +161,9 @@ class MenuBuilder {
         $attributes['href'] = $href;
 
         $caret = $isDropdown ? '<span class="caret"></span>' : '';
+        $label = $this->html->entities(trans($label));
 
-        return '<a'.$this->html->attributes($attributes).'>'.$this->html->entities($label).$caret.'</a>';
+        return '<a'.$this->html->attributes($attributes).'>'.$label.$caret.'</a>';
     }
 
     /**
