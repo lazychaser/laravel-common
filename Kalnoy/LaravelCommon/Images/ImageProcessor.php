@@ -182,7 +182,7 @@ class ImageProcessor {
 
             catch (Exception $e)
             {
-                throw $e;
+                return false;
             }
         }
 
