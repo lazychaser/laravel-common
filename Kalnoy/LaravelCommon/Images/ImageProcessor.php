@@ -171,19 +171,19 @@ class ImageProcessor {
         $file = $path.'/'.$this->hash($src).'.'.$this->file->extension($src);
 
         // If target image doesn't exists we'll create one using processor
-        if ( ! $this->file->exists($root . $file))
+        if ( ! $this->file->exists($root.$file))
         {
             try
             {
-                $image = $this->image->make($root . $src);
+                $image = $this->image->make($root.$src);
 
-                $processor($image, $params)->save($root . $file);
-
-                $image->destroy();
+                $processor($image, $params)->save($root.$file)->destroy();
             }
 
             catch (Exception $e)
             {
+                if (isset($image)) $image->destroy();
+
                 return false;
             }
         }
