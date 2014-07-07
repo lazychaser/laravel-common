@@ -178,6 +178,8 @@ class ImageProcessor {
                 $image = $this->image->make($root . $src);
 
                 $processor($image, $params)->save($root . $file);
+
+                $image->destroy();
             }
 
             catch (Exception $e)
