@@ -155,9 +155,9 @@ abstract class FormController extends BaseController {
     /**
      * Make a form view.
      */
-    protected function formView()
+    protected function formView(array $data = array())
     {
-        return View::make($this->formView)->with('form', $this->form);
+        return View::make($this->formView, $data)->with('form', $this->form);
     }
 
     /**
