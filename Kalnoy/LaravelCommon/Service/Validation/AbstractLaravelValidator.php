@@ -59,13 +59,23 @@ abstract class AbstractLaravelValidator implements ValidableInterface {
     }
 
     /**
+     * Get validation rules.
+     *
+     * @return array
+     */
+    protected function rules()
+    {
+        return $this->rules;
+    }
+
+    /**
      * Validation passes or fails.
      *
      * @return bool
      */
     public function passes()
     {
-        $validator = $this->validator->make($this->data, $this->rules, $this->messages);
+        $validator = $this->validator->make($this->data, $this->rules(), $this->messages);
 
         $this->setup($validator);
 

@@ -23,7 +23,7 @@ trait MultifunctionalForm {
 
         $action = 'do'.ucfirst($action);
 
-        return method_exists($this, $action) ? $this->{$action}($input) : false;
+        return method_exists($this, $action) ? $this->{$action}($input) !== false : false;
     }
 
 }
