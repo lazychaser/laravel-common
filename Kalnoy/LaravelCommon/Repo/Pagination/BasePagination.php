@@ -2,7 +2,7 @@
 
 namespace Kalnoy\LaravelCommon\Repo\Pagination;
 
-use Illuminate\Pagination\Environment;
+use Illuminate\Pagination\Factory;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 
@@ -14,7 +14,7 @@ abstract class BasePagination implements PaginationInterface {
     /**
      * The pagination environment.
      *
-     * @var Illuminate\Pagination\Environment
+     * @var Illuminate\Pagination\Factory
      */
     protected $env;
 
@@ -29,9 +29,9 @@ abstract class BasePagination implements PaginationInterface {
      * Init.
      *
      * @param \Illuminate\Database\Eloquent\Model    $model
-     * @param \Illuminate\Pagination\Environment $env
+     * @param \Illuminate\Pagination\Factory $env
      */
-    public function __construct(Eloquent $model, Environment $env)
+    public function __construct(Eloquent $model, Factory $env)
     {
         $this->model = $model;
         $this->env = $env;
