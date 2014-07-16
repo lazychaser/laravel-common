@@ -50,16 +50,19 @@ abstract class BaseForm implements FormInterface, EventsProvider {
      * 
      * @param array $input
      * @param \Kalnoy\LaravelCommon\Service\Validation\ValidableInterface $validator
+     * @param string $domain
      * 
      * @return bool
      */
-    protected function valid(array $input, ValidableInterface $validator)
+    protected function valid(array $input, ValidableInterface $validator, $domain = null)
     {
         if ( ! $validator) return true;
 
         if ( ! $validator->with($input)->passes())
         {
-            $this->errors->merge($validator->errors());
+            $errors = $this->transformKeys($domain, $validator->errors());
+
+            $this->errors->merge($errors);
 
             return false;
         }
@@ -130,9 +133,11 @@ abstract class BaseForm implements FormInterface, EventsProvider {
      */
     public function field($name)
     {
-        if ($this->id) $name = $this->id.'.'.$name;
+        $name = is_array($name) ? $name : func_get_args();
 
-        return key_to_name($name);
+        if ($this->id) array_unshift($name, $this->id);
+
+        return key_to_name(implode('.', $name));
     }
 
     /**
@@ -148,25 +153,26 @@ abstract class BaseForm implements FormInterface, EventsProvider {
      */
     public function errors()
     {
-        return $this->transformKeys($this->errors->getMessages());
+        return $this->transformKeys($this->id, $this->errors->getMessages());
     }
 
     /**
      * Add a form id to the fields.
      *
+     * @param string $id
      * @param array $data
      *
      * @return array
      */
-    protected function transformKeys(array $data)
+    protected function transformKeys($id, array $data)
     {
-        if ($this->id === null) return $data;
+        if ($id === null) return $data;
 
         $result = [];
 
         foreach ($data as $key => $value)
         {
-            $result[$this->id.'.'.$key] = $value;
+            $result[$id.'.'.$key] = $value;
         }
 
         return $result;
