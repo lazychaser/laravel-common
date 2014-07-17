@@ -158,26 +158,18 @@ class ImageProcessor {
 
         if (empty($src) or ! $this->file->exists($root.$src)) return null;
 
-        $category = $this->hash($category.implode('', $params));
+        $result = $this->filename($src, null, $category.implode('', $params));
 
-        $path = $this->path . '/' . $category;
-
-        // Make shure that target directory exists
-        if ( ! $this->file->isDirectory($root.$path))
-        {
-            $this->file->makeDirectory($root.$path, 0755, true);
-        }
-
-        $file = $path.'/'.$this->hash($src).'.'.$this->file->extension($src);
+        $path = $this->path($result);
 
         // If target image doesn't exists we'll create one using processor
-        if ( ! $this->file->exists($root.$file))
+        if ( ! $this->file->exists($path))
         {
             try
             {
                 $image = $this->image->make($root.$src);
 
-                $processor($image, $params)->save($root.$file)->destroy();
+                $processor($image, $params)->save($path)->destroy();
             }
 
             catch (Exception $e)
@@ -188,7 +180,47 @@ class ImageProcessor {
             }
         }
 
-        return $file;
+        return $result;
+    }
+
+    /**
+     * Generate a new random filename.
+     *
+     * @param string $original
+     * @param string|null $ext
+     * @param string|null $extra
+     *
+     * @return string
+     */
+    public function filename($original, $ext = null, $extra = null)
+    {
+        if ($ext === null) $ext = $this->file->extension($original);
+
+        if ($extra !== null) $original .= $extra;
+
+        return $this->path.'/'.substr($this->hash($original), 0, 4).'/'.str_random(11).'.'.$ext;
+    }
+
+    /**
+     * Get a saveable path for image.
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    public function path($path)
+    {
+        $path = public_path($path);
+
+        $dirname = pathinfo($path, PATHINFO_DIRNAME);
+
+        // Make shure that target directory exists
+        if ( ! $this->file->isDirectory($dirname))
+        {
+            $this->file->makeDirectory($dirname, 0755, true);
+        }
+
+        return $path;
     }
 
     /**
@@ -201,6 +233,16 @@ class ImageProcessor {
     protected function hash($value)
     {
         return sprintf('%x', crc32($value));
+    }
+
+    /**
+     * Get an underlying image processor.
+     *
+     * @return \Intervention\Image\Image
+     */
+    public function getProcessor()
+    {
+        return $this->image;
     }
 
 }
