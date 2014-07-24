@@ -167,7 +167,7 @@ class ImageProcessor {
         if (empty($src) or ! $this->file->exists($root.$src)) return null;
 
         $ext = pathinfo($src, PATHINFO_EXTENSION);
-        $result = $this->filename($ext, $this->hash($src), $category.implode('', $params));
+        $result = $this->filename($this->hash($src), $ext, $category.implode('', $params));
         $path = $this->path($result);
 
         // If target image doesn't exists we'll create one using processor
@@ -184,6 +184,8 @@ class ImageProcessor {
             {
                 if (isset($image)) $image->destroy();
 
+                \Log::error($e);
+
                 return false;
             }
         }
@@ -195,13 +197,13 @@ class ImageProcessor {
      * Generate a filename for storage. If name is not provided, a random name
      * will be generated.
      *
-     * @param string $ext
      * @param string $name
+     * @param string $ext
      * @param string|null $extra
      *
      * @return string
      */
-    public function filename($ext, $name, $extra = null)
+    public function filename($name, $ext, $extra = null)
     {
         $hash = $extra ? $this->hash($name.$extra) : $this->hash($name);
 
