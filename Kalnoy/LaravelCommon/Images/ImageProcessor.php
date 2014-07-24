@@ -184,8 +184,6 @@ class ImageProcessor {
             {
                 if (isset($image)) $image->destroy();
 
-                throw $e;
-
                 return false;
             }
         }
