@@ -4,7 +4,7 @@ namespace Kalnoy\LaravelCommon\Images;
 
 use Closure;
 use Exception;
-use Intervention\Image\Image;
+use Intervention\Image\ImageManager;
 use Illuminate\Filesystem\Filesystem;
 
 /**
@@ -15,7 +15,7 @@ class ImageProcessor {
     /**
      * The image processor.
      *
-     * @var \Intervention\Image\Image
+     * @var \Intervention\Image\ImageManager
      */
     protected $image;
 
@@ -38,7 +38,7 @@ class ImageProcessor {
      *
      * @param \Intervention\Image\Image $image
      */
-    public function __construct(Image $image, Filesystem $file, $path)
+    public function __construct(ImageManager $image, Filesystem $file, $path)
     {
         $this->image = $image;
         $this->file = $file;
@@ -71,7 +71,11 @@ class ImageProcessor {
     {
         return $this->cache('resize', $src, [ $width, $height ], function ($image, $params)
         {
-            return $image->resize($params[0], $params[1], true, false);
+            return $image->resize($params[0], $params[1], function ($constraint)
+            {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            });
         });
     }
 
@@ -93,7 +97,11 @@ class ImageProcessor {
         {
             list($w, $h, $bg) = $params;
 
-            $image = $image->resize($w, $h, true, false);
+            $image = $image->resize($w, $h, function ($constraint)
+            {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            });
 
             if ($image->width < $w or $image->height < $h)
             {
@@ -137,7 +145,7 @@ class ImageProcessor {
             $image = $image->crop($halfLength * 2, $halfLength * 2, $x - $halfLength, $y - $halfLength);
 
             // Resize to the given length allowing upsizing
-            $image = $image->resize($params[0], $params[0], false, true);
+            $image = $image->resize($params[0], $params[0]);
 
             return $image;
         });
@@ -158,8 +166,8 @@ class ImageProcessor {
 
         if (empty($src) or ! $this->file->exists($root.$src)) return null;
 
-        $result = $this->filename($src, null, $category.implode('', $params));
-
+        $ext = pathinfo($src, PATHINFO_EXTENSION);
+        $result = $this->filename($ext, $this->hash($src), $category.implode('', $params));
         $path = $this->path($result);
 
         // If target image doesn't exists we'll create one using processor
@@ -176,6 +184,8 @@ class ImageProcessor {
             {
                 if (isset($image)) $image->destroy();
 
+                throw $e;
+
                 return false;
             }
         }
@@ -184,21 +194,20 @@ class ImageProcessor {
     }
 
     /**
-     * Generate a new random filename.
+     * Generate a filename for storage. If name is not provided, a random name
+     * will be generated.
      *
-     * @param string $original
-     * @param string|null $ext
+     * @param string $ext
+     * @param string $name
      * @param string|null $extra
      *
      * @return string
      */
-    public function filename($original, $ext = null, $extra = null)
+    public function filename($ext, $name, $extra = null)
     {
-        if ($ext === null) $ext = $this->file->extension($original);
+        $hash = $extra ? $this->hash($name.$extra) : $this->hash($name);
 
-        if ($extra !== null) $original .= $extra;
-
-        return $this->path.'/'.substr($this->hash($original), 0, 4).'/'.str_random(11).'.'.$ext;
+        return $this->path.'/'.substr($hash, 0, 4).'/'.$name.'.'.$ext;
     }
 
     /**

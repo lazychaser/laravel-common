@@ -22,7 +22,7 @@ class ImagesServiceProvider extends ServiceProvider {
     {
         $this->app->bindShared('images', function ($app)
         {
-            return new ImageProcessor(new Image, $app['files'], 'image_cache/v3');
+            return new ImageProcessor($app['image'], $app['files'], 'image_cache/v3');
         });
     }
 
