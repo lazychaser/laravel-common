@@ -131,7 +131,7 @@ abstract class FormController extends BaseController {
 
         Session::ageFlashData();
 
-        return $this->responseJSON($view, self::FAIL);
+        return $this->responseJson($view, self::FAIL);
     }
 
     /**
@@ -149,7 +149,7 @@ abstract class FormController extends BaseController {
 
         Session::ageFlashData();
 
-        return $this->responseJSON($this->formView());
+        return $this->responseJson($this->formView());
     }
 
     /**

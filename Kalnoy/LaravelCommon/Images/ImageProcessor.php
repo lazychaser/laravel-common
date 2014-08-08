@@ -113,6 +113,37 @@ class ImageProcessor {
     }
 
     /**
+     * Fit image into a specified width keeping aspect ratio not greater than specified.
+     *
+     * @param string $src
+     * @param int $width
+     * @param int $ratio
+     *
+     * @return string
+     */
+    public function fitAspectRatio($src, $width, $ratio)
+    {
+        return $this->cache('fitar', $src, [ $width, $ratio ], function ($image, $params)
+        {
+            list($width, $ratio) = $params;
+
+            $iRatio = $image->width() / ($ih = $image->height());
+
+            if ($iRatio > $ratio)
+            {
+                $image->resizeCanvas(ceil($ih * $ratio), $ih, 'center');
+            }
+
+            if ($image->width() > $width)
+            {
+                $image->widen($width);
+            }
+
+            return $image;
+        });
+    }
+
+    /**
      * Fit image to a square of specified length keeping aspect ratio without
      * cropping.
      *
