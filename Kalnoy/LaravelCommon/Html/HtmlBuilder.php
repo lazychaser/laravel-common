@@ -216,4 +216,27 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
     {
         return '<span class="glyphicon glyphicon-'.$name.'"></span>';
     }
+
+    public function model_states($model, $states)
+    {
+        $states = is_array($states) ? $states : array($states);
+
+        $states = array_filter($states, function ($state) use ($model)
+        {
+            return $this->hasState($model, $state);
+        });
+
+        return implode($states, ' ');
+    }
+
+    public function hasState($model, $state)
+    {
+        $method = 'is'.\Str::camel($state);
+
+        if (method_exists($model, $method)) return $model->{$method}();
+
+        $state = 'is_'.str_replace('-', '_', $state);
+
+        return $model->{$state};
+    }
 }
