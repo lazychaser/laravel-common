@@ -2,9 +2,8 @@
 
 namespace Kalnoy\LaravelCommon\Repo\Pagination;
 
-use Illuminate\Pagination\Factory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Database\Eloquent\Model as Eloquent;
 
 /**
  * Base pagination class.
@@ -12,60 +11,40 @@ use Illuminate\Database\Eloquent\Model as Eloquent;
 abstract class BasePagination implements PaginationInterface {
 
     /**
-     * The pagination environment.
-     *
-     * @var Illuminate\Pagination\Factory
-     */
-    protected $env;
-
-    /**
-     * Eloquent model.
-     *
-     * @var \Illuminate\Database\Eloquent\Model
-     */
-    protected $model;
-
-    /**
-     * Init.
-     *
-     * @param \Illuminate\Database\Eloquent\Model    $model
-     * @param \Illuminate\Pagination\Factory $env
-     */
-    public function __construct(Eloquent $model, Factory $env)
-    {
-        $this->model = $model;
-        $this->env = $env;
-    }
-
-    /**
-     * Get page settings.
-     *
-     * @param array $options
-     *
-     * @return [ $page, $perPage ]
-     */
-    public function getPageSettings(array $options)
-    {
-        $page    = max(1, (int)array_get($options, 'page', 1));
-        $perPage = (int)array_get($options, 'per_page', $this->model->getPerPage());
-
-        return [ $page, $perPage ];
-    }
-
-    /**
      * Setup paginator.
      *
      * @param \Illuminate\Pagination\Paginator $paginator
-     * @param array     $options
+     * @param array $input
      *
      * @return \Illuminate\Pagination\Paginator
      */
-    public function setupPaginator(Paginator $paginator, array $options)
+    public function setupPaginator(Paginator $paginator, array $input)
     {
-        unset($options['page']);
-        
-        $paginator->appends($options);
+        $paginator->appends($input);
 
         return $paginator->setupPaginationContext();
     }
-}   
+
+    /**
+     * @param $query
+     *
+     * @return \Illuminate\Pagination\Factory
+     */
+    protected function getFactory($query)
+    {
+        $factory = $query->getConnection()->getPaginator();
+
+        return $factory;
+    }
+
+    /**
+     * @param Builder $builder
+     * @param array   $input
+     *
+     * @return int
+     */
+    protected function getPerPage(Builder $builder, array $input)
+    {
+        return (int)array_get($input, 'per_page') ?: $builder->getModel()->getPerPage();
+    }
+}

@@ -9,25 +9,28 @@ class DefaultPagination extends BasePagination {
     /**
      * Apply default pagination.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param array                                 $options
+     * @param Builder $builder
+     * @param array   $input
+     * @param array   $columns
      *
      * @return \Kalnoy\LaravelCommon\Repo\Pagination\EloquentPaginator
      */
-    public function paginate(Builder $query, array $options)
+    public function paginate(Builder $builder, array $input, array $columns = ['*'])
     {
-        $innerQuery = $query->getQuery();
+        $query = $builder->getQuery();
+        $factory = $this->getFactory($query);
 
-        list($page, $perPage) = $this->getPageSettings($options);
+        $page = $factory->getCurrentPage();
+        $perPage = $this->getPerPage($builder, $input);
 
-        $total   = (int)$innerQuery->getPaginationCount();
+        $total = (int)$query->getPaginationCount();
 
-        $innerQuery->forPage($page, $perPage);
+        $query->forPage($page, $perPage);
 
-        $items = $query->get()->all();
+        $items = $builder->get()->all();
 
-        $paginator = new EloquentPaginator($this->env, $items, $total, $perPage);
+        $paginator = new EloquentPaginator($factory, $items, $total, $perPage);
 
-        return $this->setupPaginator($paginator, $options);
+        return $this->setupPaginator($paginator, $input);
     }
 }
