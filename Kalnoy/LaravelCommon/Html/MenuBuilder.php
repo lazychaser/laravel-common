@@ -37,8 +37,13 @@ class MenuBuilder {
      *
      * @var array
      */
-    protected $reserved = [ 'href', 'url', 'route', 'items' ];
+    protected $reserved = [ 'href', 'url', 'route', 'items', 'badge', 'icon' ];
 
+    /**
+     * @param HtmlBuilder $html
+     * @param UrlGenerator $url
+     * @param Request $request
+     */
     public function __construct(HtmlBuilder $html, UrlGenerator $url, Request $request)
     {
         $this->html = $html;
@@ -88,7 +93,7 @@ class MenuBuilder {
      * @param mixed $label
      * @param mixed $options
      *
-     * @return [ $label, $options ]
+     * @return array [ $label, $options ]
      */
     public function getLabelAndOptions($label, $options)
     {
@@ -119,7 +124,7 @@ class MenuBuilder {
     public function item($label, array $options = [])
     {
         $href = $this->getHref($options);
-        $link = $this->getLink($href, $label, isset($options['items']));
+        $link = $this->getLink($href, $label, $options);
 
         $attributes = array_except($options, $this->reserved);
 
@@ -148,22 +153,33 @@ class MenuBuilder {
      *
      * @return string
      */
-    protected function getLink($href, $label, $isDropdown)
+    protected function getLink($href, $label, array $options)
     {
         $attributes = [];
 
-        if ($isDropdown)
+        $label = $this->html->entities(trans($label));
+
+        if (isset($options['badge']))
+        {
+            $label .= ' '.$this->getBadge($options['badge']);
+        }
+
+        if (isset($options['items']))
         {
             $attributes['class'] = 'dropdown-toggle';
             $attributes['data-toggle'] = 'dropdown';
+
+            $label .= $this->getCaret();
+        }
+
+        if (isset($options['icon']))
+        {
+            $label = $this->getIcon($options['icon']).' '.$label;
         }
 
         $attributes['href'] = $href;
 
-        $caret = $isDropdown ? '<span class="caret"></span>' : '';
-        $label = $this->html->entities(trans($label));
-
-        return '<a'.$this->html->attributes($attributes).'>'.$label.$caret.'</a>';
+        return '<a'.$this->html->attributes($attributes).'>'.$label.'</a>';
     }
 
     /**
@@ -239,7 +255,7 @@ class MenuBuilder {
         if (false !== $pos = strpos($href, '?'))
         {
             $params = [];
-            
+
             parse_str(substr($href, $pos + 1), $params);
 
             if ( ! $this->requestHasParameters($params)) return false;
@@ -247,7 +263,9 @@ class MenuBuilder {
             $href = substr($href, 0, $pos);
         }
 
-        return str_is($href . '*', $this->request->url());
+        $url = $this->request->url();
+
+        return $url === $href or str_is($href . '/*', $this->request->url());
     }
 
     /**
@@ -271,4 +289,31 @@ class MenuBuilder {
         return true;
     }
 
+    /**
+     * @param $badge
+     *
+     * @return string
+     */
+    protected function getBadge($badge)
+    {
+        return '<span class="badge">'.$badge.'</span>';
+    }
+
+    /**
+     * @return string
+     */
+    protected function getCaret()
+    {
+        return '<span class="caret"></span>';
+    }
+
+    /**
+     * @param string $icon
+     *
+     * @return string
+     */
+    protected function getIcon($icon)
+    {
+        return '<span class="glyphicon glyphicon-'.$icon.'"></span>';
+    }
 }

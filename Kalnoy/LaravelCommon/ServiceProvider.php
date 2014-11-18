@@ -45,7 +45,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider {
      */
     protected function extendValidator($validator)
     {
-        $rules = [ 'slug', 'phone' ];
+        $rules = [ 'slug' ];
 
         foreach ($rules as $rule)
         {
