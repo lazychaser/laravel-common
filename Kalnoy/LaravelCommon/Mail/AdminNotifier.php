@@ -11,14 +11,14 @@ class AdminNotifier extends Notifier {
 
     /**
      * A list of admin emails.
-     * 
+     *
      * @var array
      */
     protected $emails;
 
     /**
      * Init notifier.
-     * 
+     *
      * @param array $emails
      */
     public function __construct(array $emails)
@@ -37,21 +37,29 @@ class AdminNotifier extends Notifier {
      */
     protected function notify($view, $data, $subject = '')
     {
-        return Mail::send($view, $data, function ($message) use ($subject)
+        try
         {
-            $emails = $this->emails;
-
-            // First person to receieve a mail
-            $message->to(array_shift($emails));
-
-            // Others will receive a copy
-            foreach ($emails as $email)
+            Mail::send($view, $data, function ($message) use ($subject)
             {
-                $message->cc($email);
-            }
+                $emails = $this->emails;
 
-            if ($subject) $message->subject($subject);
-        });
+                // First person to receieve a mail
+                $message->to(array_shift($emails));
+
+                // Others will receive a copy
+                foreach ($emails as $email)
+                {
+                    $message->cc($email);
+                }
+
+                if ($subject) $message->subject($subject);
+            });
+        }
+
+        catch (\Swift_TransportException $e)
+        {
+            \Log::error('Failed to notify admin: '.$e->getMessage());
+        }
     }
 
 }
