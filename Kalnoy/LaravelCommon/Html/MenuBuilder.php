@@ -123,6 +123,8 @@ class MenuBuilder {
      */
     public function item($label, array $options = [])
     {
+        if (isset($options['visible']) and ! value($options['visible'])) return '';
+
         $href = $this->getHref($options);
         $link = $this->getLink($href, $label, $options);
 
@@ -263,9 +265,7 @@ class MenuBuilder {
             $href = substr($href, 0, $pos);
         }
 
-        $url = $this->request->url();
-
-        return $url === $href or str_is($href . '/*', $this->request->url());
+        return rtrim($href, '/') === $this->request->url();
     }
 
     /**
