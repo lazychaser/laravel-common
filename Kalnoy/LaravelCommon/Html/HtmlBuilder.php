@@ -29,9 +29,9 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
 
     /**
      * Convert an array key name to the input name.
-     * 
+     *
      * @param string $key
-     * 
+     *
      * @return string
      */
     public function keyToName($key)
@@ -61,7 +61,7 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
      *
      * @param array $items
      * @param string $main
-     * 
+     *
      * @return string
      */
     public function breadcrumb(array $items, $main = 'Main')
@@ -140,8 +140,10 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
     {
         if ($messages instanceof ArrayableInterface)
         {
-            $messages = array_flatten($messages->toArray());
+            $messages = $messages->toArray();
         }
+
+        $messages = array_flatten($messages);
 
         $html = '<ul class="errors">';
 
@@ -209,7 +211,7 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
 
     /**
      * Get an icon tag.
-     * 
+     *
      * @return string
      */
     public function icon($name)
