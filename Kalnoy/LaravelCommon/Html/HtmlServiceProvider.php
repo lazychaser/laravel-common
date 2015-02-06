@@ -23,8 +23,6 @@ class HtmlServiceProvider extends ServiceProvider {
         $this->registerHtmlBuilder();
 
         $this->registerFormBuilder();
-
-        $this->registerMenuBuilder();
     }
 
     /**
@@ -56,26 +54,13 @@ class HtmlServiceProvider extends ServiceProvider {
     }
 
     /**
-     * Register the menu builder instance.
-     *
-     * @return void
-     */
-    public function registerMenuBuilder()
-    {
-        $this->app->bindShared('menu', function ($app)
-        {
-            return new MenuBuilder($app['html'], $app['url'], $app['request']);
-        });
-    }
-
-    /**
      * Get the services provided by the provider.
      *
      * @return array
      */
     public function provides()
     {
-        return array('html', 'form', 'menu');
+        return array('html', 'form');
     }
 
 }

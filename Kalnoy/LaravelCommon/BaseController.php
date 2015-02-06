@@ -6,8 +6,8 @@ use Response;
 use Session;
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
-use Illuminate\Support\JsonableInterface as Jsonable;
-use Illuminate\Support\ArrayableInterface as Arrayable;
+use Illuminate\Support\Contracts\JsonableInterface as Jsonable;
+use Illuminate\Support\Contracts\ArrayableInterface as Arrayable;
 use Illuminate\Support\Contracts\RenderableInterface as Renderable;
 use Illuminate\Http\RedirectResponse;
 use Kalnoy\LaravelCommon\Service\Form\Alert;
@@ -38,9 +38,10 @@ class BaseController extends Controller {
      * Set layout meta info.
      *
      * @param string $title
-     * @param string $metaTitle
      * @param string $keywords
      * @param string $description
+     *
+     * @return $this
      */
     public function setMeta($title, $keywords = null, $description = null)
     {
@@ -59,8 +60,9 @@ class BaseController extends Controller {
     /**
      * Set meta from a meta holder.
      *
-     * @param string $title
-     * @param \Illuminate\Database\Eloquent\Model $meta
+     * @param MetaHolderInterface $model
+     *
+     * @return BaseController
      */
     public function setMetaFromModel($model)
     {
@@ -89,11 +91,6 @@ class BaseController extends Controller {
         {
             $data = $data->render();
             $type = 'html';
-        }
-        else if ($data instanceof Alert)
-        {
-            $data = $data->toArray();
-            $type = 'alert';
         }
         else if ($data instanceof Jsonable)
         {

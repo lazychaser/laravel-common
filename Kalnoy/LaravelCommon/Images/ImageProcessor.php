@@ -4,8 +4,12 @@ namespace Kalnoy\LaravelCommon\Images;
 
 use Closure;
 use Exception;
+use Illuminate\Log\Writer;
+use Intervention\Image\Constraint;
+use Intervention\Image\Image;
 use Intervention\Image\ImageManager;
 use Illuminate\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Image processor is reponsible for making avatars and thumbnails.
@@ -34,9 +38,37 @@ class ImageProcessor {
     protected $path;
 
     /**
+     * @var Writer
+     */
+    protected $log;
+
+    /**
+     * Image max width when uploading.
+     *
+     * @var int
+     */
+    public $maxWidth = 1280;
+
+    /**
+     * Image max height when uploading.
+     *
+     * @var int
+     */
+    public $maxHeight = 1024;
+
+    /**
+     * Background color for uploaded image.
+     *
+     * @var string
+     */
+    public $background = 'ffffff';
+
+    /**
      * Init processor.
      *
-     * @param \Intervention\Image\Image $image
+     * @param ImageManager $image
+     * @param Filesystem $file
+     * @param string $path
      */
     public function __construct(ImageManager $image, Filesystem $file, $path)
     {
@@ -47,10 +79,10 @@ class ImageProcessor {
 
     /**
      * Resize a image to fit a square of given length.
-     * 
+     *
      * @param string $src
      * @param int $length
-     * 
+     *
      * @return string
      */
     public function square($src, $length)
@@ -60,7 +92,7 @@ class ImageProcessor {
 
     /**
      * Resize image to a given maximum width and height.
-     * 
+     *
      * @param string $src
      * @param int|null $width
      * @param int|null $height
@@ -69,9 +101,9 @@ class ImageProcessor {
      */
     public function resize($src, $width, $height)
     {
-        return $this->cache('resize', $src, [ $width, $height ], function ($image, $params)
+        return $this->process('resize', $src, [ $width, $height ], function ($image, $w, $h)
         {
-            return $image->resize($params[0], $params[1], function ($constraint)
+            return $image->resize($w, $h, function (Constraint $constraint)
             {
                 $constraint->aspectRatio();
                 $constraint->upsize();
@@ -81,23 +113,21 @@ class ImageProcessor {
 
     /**
      * Fit an image into image of specified size keeping aspect without cropping.
-     * 
+     *
      * @param string $src
      * @param int $width
      * @param int $height
      * @param mixed $background
-     * 
+     *
      * @return string
      */
     public function fit($src, $width, $height, $background = null)
     {
         $params = [ $width, $height, $background ];
 
-        return $this->cache('fit', $src, $params, function ($image, $params)
+        return $this->process('fit', $src, $params, function (Image $image, $w, $h, $bg)
         {
-            list($w, $h, $bg) = $params;
-
-            $image = $image->resize($w, $h, function ($constraint)
+            $image = $image->resize($w, $h, function (Constraint $constraint)
             {
                 $constraint->aspectRatio();
                 $constraint->upsize();
@@ -123,10 +153,8 @@ class ImageProcessor {
      */
     public function fitAspectRatio($src, $width, $ratio)
     {
-        return $this->cache('fitar', $src, [ $width, $ratio ], function ($image, $params)
+        return $this->process('fitar', $src, [ $width, $ratio ], function (Image $image, $width, $ratio)
         {
-            list($width, $ratio) = $params;
-
             $iRatio = $image->width() / ($ih = $image->height());
 
             if ($iRatio > $ratio)
@@ -171,12 +199,12 @@ class ImageProcessor {
      */
     public function cropToFitSquare($src, $length, $x, $y, $halfLength)
     {
-        return $this->cache('crop', $src, [ $length ], function ($image, $params) use ($x, $y, $halfLength)
+        return $this->process('crop', $src, [ $length ], function ($image, $length) use ($x, $y, $halfLength)
         {
             $image = $image->crop($halfLength * 2, $halfLength * 2, $x - $halfLength, $y - $halfLength);
 
             // Resize to the given length allowing upsizing
-            $image = $image->resize($params[0], $params[0]);
+            $image = $image->resize($length, $length);
 
             return $image;
         });
@@ -185,89 +213,118 @@ class ImageProcessor {
     /**
      * Process an image and save the results.
      *
-     * @param string  $category
-     * @param string  $src
+     * @param string $category
+     * @param string $src
      * @param Closure $processor
      *
-     * @return string
+     * @return string|bool
      */
-    public function cache($category, $src, $params, Closure $processor)
+    public function process($category, $src, $params, Closure $processor)
     {
-        $root = public_path() . '/';
-
-        if (empty($src) or ! $this->file->exists($root.$src)) return null;
-
-        $ext = pathinfo($src, PATHINFO_EXTENSION);
-        $result = $this->filename($this->hash($src), $ext, $category.implode('', $params));
-        $path = $this->path($result);
-
-        // If target image doesn't exists we'll create one using processor
-        if ( ! $this->file->exists($path))
-        {
-            try
-            {
-                $image = $this->image->make($root.$src);
-
-                $processor($image, $params)->save($path)->destroy();
-            }
-
-            catch (Exception $e)
-            {
-                if (isset($image)) $image->destroy();
-
-                \Log::error($e);
-
-                return false;
-            }
-        }
-
-        return $result;
+        return $this->save($src, $processor, $params, null, $category.implode('', $params));
     }
 
     /**
-     * Generate a filename for storage. If name is not provided, a random name
-     * will be generated.
+     * @param $src
+     * @param $processor
+     * @param array $params
+     * @param null $ext
+     * @param null $category
      *
-     * @param string $name
+     * @return array|bool
+     */
+    protected function save($src, $processor, $params = [], $ext = null, $category = null)
+    {
+        if (empty($src) or ! $this->file->exists($src)) return false;
+
+        if ( ! $ext)
+        {
+            $ext = pathinfo($src, PATHINFO_EXTENSION);
+        }
+
+        $publicPath = $this->getFileName($this->hash($src), $ext, $category);
+        $path = $this->getFullFileName($publicPath);
+
+        try
+        {
+            $image = $this->image->make($src);
+
+            array_unshift($params, $image);
+
+            call_user_func_array($processor, $params);
+
+            $image->save($path);
+
+            $size = [ $image->width(), $image->height() ];
+
+            $image->destroy();
+
+            return compact('publicPath', 'path', 'size');
+        }
+
+        catch (Exception $e)
+        {
+            if (isset($image)) $image->destroy();
+
+            if ($this->log) $this->log->error($e);
+
+            return false;
+        }
+    }
+
+    /**
+     * Upload an image.
+     *
+     * @param UploadedFile $file
+     *
+     * @return string
+     */
+    public function upload(UploadedFile $file)
+    {
+        return $this->save($file->getPathname(), [ $this, 'processUploadedImage' ], [], 'jpg');
+    }
+
+    /**
+     * Generate a filename for storage.
+     *
+     * @param string $baseName
      * @param string $ext
-     * @param string|null $extra
+     * @param string|null $category
      *
      * @return string
      */
-    public function filename($name, $ext, $extra = null)
+    public function getFileName($baseName, $ext, $category = null)
     {
-        $hash = $extra ? $this->hash($name.$extra) : $this->hash($name);
+        $category = $category ? $this->hash($baseName.$category) : $this->hash($baseName);
 
-        return $this->path.'/'.substr($hash, 0, 4).'/'.$name.'.'.$ext;
+        return $this->path.'/'.substr($category, 0, 4).'/'.$baseName.'.'.$ext;
     }
 
     /**
-     * Get a saveable path for image.
-     *
-     * @param string $path
+     * @param string $src
      *
      * @return string
      */
-    public function path($path)
+    public function getFullFileName($src)
     {
-        $path = public_path($path);
+        $src = public_path($src);
 
-        $dirname = pathinfo($path, PATHINFO_DIRNAME);
+        $directory = pathinfo($src, PATHINFO_DIRNAME);
 
-        // Make shure that target directory exists
-        if ( ! $this->file->isDirectory($dirname))
+        // Make sure that target directory exists
+        if ( ! $this->file->isDirectory($directory))
         {
-            $this->file->makeDirectory($dirname, 0755, true);
+            $this->file->makeDirectory($directory, 0777, true);
         }
 
-        return $path;
+        return $src;
     }
 
     /**
      * Compute a hash for the string.
-     * 
+     *
      * @param string $value
-     * 
+     *
      * @return string
      */
     protected function hash($value)
@@ -283,6 +340,31 @@ class ImageProcessor {
     public function getProcessor()
     {
         return $this->image;
+    }
+
+    /**
+     * @param Writer $log
+     */
+    public function setLogger(Writer $log)
+    {
+        $this->log = $log;
+    }
+
+    /**
+     * @param $image
+     */
+    protected function processUploadedImage(Image $image)
+    {
+        $image->resize($this->maxWidth, $this->maxHeight, function (Constraint $constraint)
+        {
+            $constraint->aspectRatio();
+            $constraint->upsize();
+        });
+
+        if ($this->background)
+        {
+            $image->resizeCanvas($image->width(), $image->height(), null, false, $this->background);
+        }
     }
 
 }

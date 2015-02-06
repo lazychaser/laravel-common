@@ -2,6 +2,7 @@
 
 namespace Kalnoy\LaravelCommon\Mail;
 
+use Illuminate\Mail\Message;
 use Mail;
 
 /**
@@ -39,7 +40,7 @@ class AdminNotifier extends Notifier {
     {
         try
         {
-            Mail::send($view, $data, function ($message) use ($subject)
+            Mail::send($view, $data, function (Message $message) use ($subject)
             {
                 $emails = $this->emails;
 
