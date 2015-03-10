@@ -232,6 +232,8 @@ class ImageProcessor {
      * @param null $category
      *
      * @return array|bool
+     *
+     * @throws Exception
      */
     protected function save($src, $processor, $params = [], $ext = null, $category = null)
     {
@@ -266,9 +268,7 @@ class ImageProcessor {
         {
             if (isset($image)) $image->destroy();
 
-            if ($this->log) $this->log->error($e);
-
-            return false;
+            throw $e;
         }
     }
 

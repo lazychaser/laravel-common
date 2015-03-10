@@ -3,7 +3,8 @@
 namespace Kalnoy\LaravelCommon\Repo\Pagination;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Pagination\Paginator;
+use Illuminate\Contracts\Pagination\Paginator;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Base pagination class.
@@ -13,28 +14,16 @@ abstract class BasePagination implements PaginationInterface {
     /**
      * Setup paginator.
      *
-     * @param \Illuminate\Pagination\Paginator $paginator
+     * @param \Illuminate\Contracts\Pagination\Paginator $paginator
      * @param array $input
      *
-     * @return \Illuminate\Pagination\Paginator
+     * @return \Illuminate\Contracts\Pagination\Paginator
      */
     public function setupPaginator(Paginator $paginator, array $input)
     {
         $paginator->appends($input);
 
-        return $paginator->setupPaginationContext();
-    }
-
-    /**
-     * @param $query
-     *
-     * @return \Illuminate\Pagination\Factory
-     */
-    protected function getFactory($query)
-    {
-        $factory = $query->getConnection()->getPaginator();
-
-        return $factory;
+        return $paginator;
     }
 
     /**
@@ -46,5 +35,14 @@ abstract class BasePagination implements PaginationInterface {
     protected function getPerPage(Builder $builder, array $input)
     {
         return (int)array_get($input, 'per_page') ?: $builder->getModel()->getPerPage();
+    }
+
+    /**
+     * @param $page
+     * @param $totalPages
+     */
+    protected function validatePage($page, $totalPages)
+    {
+        if ($page < 1 or $totalPages > 0 and $page > $totalPages) throw new HttpException(404);
     }
 }

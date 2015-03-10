@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 /**
  * Eloquent paginator.
  */
-class EloquentPaginator extends Paginator {
+class EloquentPaginator extends Lengt {
 
     /**
      * @inheritdoc
@@ -17,7 +17,7 @@ class EloquentPaginator extends Paginator {
      */
     public function getCollection()
     {
-        return new Collection($this->items);
+        return $this->items;
     }
 
 }

@@ -3,6 +3,7 @@
 namespace Kalnoy\LaravelCommon\Repo\Pagination;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class DefaultPagination extends BasePagination {
 
@@ -13,24 +14,26 @@ class DefaultPagination extends BasePagination {
      * @param array   $input
      * @param array   $columns
      *
-     * @return \Kalnoy\LaravelCommon\Repo\Pagination\EloquentPaginator
+     * @return LengthAwarePaginator
      */
     public function paginate(Builder $builder, array $input, array $columns = ['*'])
     {
         $query = $builder->getQuery();
-        $factory = $this->getFactory($query);
 
-        $page = $factory->getCurrentPage();
+        $page = max(1, (int)array_get($input, 'page', 1));
         $perPage = $this->getPerPage($builder, $input);
 
-        $total = (int)$query->getPaginationCount();
+        $total = (int)$query->getCountForPagination();
+
+        $this->validatePage($page, (int)ceil((float)$total / $perPage));
 
         $query->forPage($page, $perPage);
 
-        $items = $builder->get()->all();
+        $items = $builder->get();
 
-        $paginator = new EloquentPaginator($factory, $items, $total, $perPage);
+        $paginator = new LengthAwarePaginator($items, $total, $perPage, $page);
 
         return $this->setupPaginator($paginator, $input);
     }
+
 }

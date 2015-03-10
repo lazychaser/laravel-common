@@ -206,3 +206,33 @@ if ( ! function_exists('key_to_name'))
         return app('html')->keyToName($key);
     }
 }
+
+if ( ! defined('YOUTUBE_REGEX'))
+{
+    define('YOUTUBE_REGEX', '/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/');
+}
+
+if ( ! defined('YOUTUBE_VIDEO_ID_LENGTH'))
+{
+    define('YOUTUBE_VIDEO_ID_LENGTH', 11);
+}
+
+if ( ! function_exists('get_youtube_video_id'))
+{
+    /**
+     * Get a youtube video id from the url.
+     *
+     * @param $url
+     *
+     * @return string|false
+     */
+    function get_youtube_video_id($url)
+    {
+        if (preg_match(YOUTUBE_REGEX, $url, $matches) and strlen($matches[2]) == YOUTUBE_VIDEO_ID_LENGTH)
+        {
+            return $matches[2];
+        }
+
+        return false;
+    }
+}
