@@ -29,9 +29,9 @@ class DefaultPagination extends BasePagination {
 
         $query->forPage($page, $perPage);
 
-        $items = $builder->get();
+        $items = $builder->get($columns);
 
-        $paginator = new LengthAwarePaginator($items, $total, $perPage, $page);
+        $paginator = new LengthAwarePaginator($items, $total, $perPage, $page, [ 'path' => app('request')->url() ]);
 
         return $this->setupPaginator($paginator, $input);
     }
