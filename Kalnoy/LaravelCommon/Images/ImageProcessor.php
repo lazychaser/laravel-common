@@ -2,6 +2,7 @@
 
 namespace Kalnoy\LaravelCommon\Images;
 
+use Kalnoy\LaravelCommon\Images\ImageData;
 use Closure;
 use Exception;
 use Illuminate\Log\Writer;
@@ -80,52 +81,53 @@ class ImageProcessor {
     /**
      * Resize a image to fit a square of given length.
      *
-     * @param string $src
+     * @param string|ImageData $image
      * @param int $length
      *
      * @return string
      */
-    public function square($src, $length)
+    public function square($image, $length)
     {
-        return $this->resize($src, $length, $length);
+        return $this->resize($image, $length, $length);
     }
 
     /**
      * Resize image to a given maximum width and height.
      *
-     * @param string $src
+     * @param string|ImageData $image
      * @param int|null $width
      * @param int|null $height
      *
      * @return string
      */
-    public function resize($src, $width, $height)
+    public function resize($image, $width, $height)
     {
-        return $this->process('resize', $src, [ $width, $height ], function ($image, $w, $h)
+        return $this->process($image, [ $width, $height ], function ($image, $w, $h)
         {
             return $image->resize($w, $h, function (Constraint $constraint)
             {
                 $constraint->aspectRatio();
                 $constraint->upsize();
             });
-        });
+
+        }, 'resize');
     }
 
     /**
      * Fit an image into image of specified size keeping aspect without cropping.
      *
-     * @param string $src
+     * @param string|ImageData $image
      * @param int $width
      * @param int $height
      * @param mixed $background
      *
      * @return string
      */
-    public function fit($src, $width, $height, $background = null)
+    public function fit($image, $width, $height, $background = null)
     {
         $params = [ $width, $height, $background ];
 
-        return $this->process('fit', $src, $params, function (Image $image, $w, $h, $bg)
+        return $this->process($image, $params, function (Image $image, $w, $h, $bg)
         {
             $image = $image->resize($w, $h, function (Constraint $constraint)
             {
@@ -139,21 +141,22 @@ class ImageProcessor {
             }
 
             return $image;
-        });
+
+        }, 'fit');
     }
 
     /**
      * Fit image into a specified width keeping aspect ratio not greater than specified.
      *
-     * @param string $src
+     * @param string|ImageData $image
      * @param int $width
      * @param int $ratio
      *
      * @return string
      */
-    public function fitAspectRatio($src, $width, $ratio)
+    public function fitAspectRatio($image, $width, $ratio)
     {
-        return $this->process('fitar', $src, [ $width, $ratio ], function (Image $image, $width, $ratio)
+        return $this->process($image, [ $width, $ratio ], function (Image $image, $width, $ratio)
         {
             $iRatio = $image->width() / ($ih = $image->height());
 
@@ -168,108 +171,121 @@ class ImageProcessor {
             }
 
             return $image;
-        });
+
+        }, 'fitar');
     }
 
     /**
      * Fit image to a square of specified length keeping aspect ratio without
      * cropping.
      *
-     * @param string $src
+     * @param string|ImageData $image
      * @param int $length
      * @param mixed $background
      *
      * @return string
      */
-    public function fitToSquare($src, $length, $background = null)
+    public function fitToSquare($image, $length, $background = null)
     {
-        return $this->fit($src, $length, $length, $background);
+        return $this->fit($image, $length, $length, $background);
     }
 
     /**
      * Cut a square from image and fit to the square of specified length.
      *
-     * @param string $src
-     * @param int $length
+     * @param string|ImageData $image
+     * @param int $size
      * @param int $x The x coordinate of the cropping center
      * @param int $y The y coordinate of the cropping center
      * @param int $halfLength Half-length of the cropping square
      *
      * @return string
      */
-    public function cropToFitSquare($src, $length, $x, $y, $halfLength)
+    public function cropToFitSquare($image, $size, $x, $y, $halfLength)
     {
-        return $this->process('crop', $src, [ $length ], function ($image, $length) use ($x, $y, $halfLength)
+        return $this->process($image, [ $size ], function (Image $image, $length) use ($x, $y, $halfLength)
         {
-            $image = $image->crop($halfLength * 2, $halfLength * 2, $x - $halfLength, $y - $halfLength);
+            return $this->cropToFitSquareImage($image, $length, $x, $y, $halfLength);
 
-            // Resize to the given length allowing upsizing
-            $image = $image->resize($length, $length);
+        }, 'crop');
+    }
 
-            return $image;
-        });
+    /**
+     * @param Image $image
+     * @param $size
+     * @param $x
+     * @param $y
+     * @param $halfLength
+     *
+     * @return Image
+     */
+    protected function cropToFitSquareImage(Image $image, $size, $x, $y, $halfLength)
+    {
+        $image = $image->crop($halfLength * 2, $halfLength * 2, $x - $halfLength, $y - $halfLength);
+
+        // Resize to the given length allowing upsizing
+        return $image->resize($size, $size);
     }
 
     /**
      * Process an image and save the results.
      *
+     * @param string|ImageData $src
+     * @param mixed $params
+     * @param callable $processor
      * @param string $category
-     * @param string $src
-     * @param Closure $processor
+     * @param string $ext
      *
-     * @return string|bool
-     */
-    public function process($category, $src, $params, Closure $processor)
-    {
-        return $this->save($src, $processor, $params, null, $category.implode('', $params));
-    }
-
-    /**
-     * @param $src
-     * @param $processor
-     * @param array $params
-     * @param null $ext
-     * @param null $category
-     *
-     * @return array|bool
+     * @return ImageData
      *
      * @throws Exception
      */
-    protected function save($src, $processor, $params = [], $ext = null, $category = null)
+    public function process($src, $params, $processor, $category = '', $ext = '')
     {
+        if ($src instanceof ImageData) $src = $src->getPath();
+
         if (empty($src) or ! $this->file->exists($src)) return false;
 
-        if ( ! $ext)
-        {
-            $ext = pathinfo($src, PATHINFO_EXTENSION);
-        }
-
-        $publicPath = $this->getFileName($this->hash($src), $ext, $category);
-        $path = $this->getFullFileName($publicPath);
+        $image = $this->image->make($src);
 
         try
         {
-            $image = $this->image->make($src);
-
             array_unshift($params, $image);
 
-            call_user_func_array($processor, $params);
+            $image = call_user_func_array($processor, $params);
 
-            $image->save($path);
-
-            $size = [ $image->width(), $image->height() ];
-
-            $image->destroy();
-
-            return compact('publicPath', 'path', 'size');
+            $data = $this->save($image, $category.implode('', (array)$params), $src, $ext);
         }
 
-        catch (Exception $e)
+        finally
         {
-            if (isset($image)) $image->destroy();
-
-            throw $e;
+            $image->destroy();
         }
+
+        return $data;
+    }
+
+    /**
+     * @param Image $image
+     * @param string $src
+     * @param string $category
+     * @param string $ext
+     *
+     * @return ImageData
+     */
+    protected function save(Image $image, $category = '', $src = '', $ext = null)
+    {
+        $ext = $this->getExtension($src, $ext);
+
+        $publicPath = $this->getPublicPath(str_random(8), $ext, $category);
+
+        $path = $this->getFileName($publicPath);
+
+        $image->save($path);
+
+        $size = $image->getSize();
+
+        return new ImageData($publicPath, $size->width, $size->height);
     }
 
     /**
@@ -281,7 +297,7 @@ class ImageProcessor {
      */
     public function upload(UploadedFile $file)
     {
-        return $this->save($file->getPathname(), [ $this, 'processUploadedImage' ], [], 'jpg');
+        return $this->process($file->getPathname(), [], [ $this, 'processUploadedImage' ], '', 'jpg');
     }
 
     /**
@@ -293,7 +309,7 @@ class ImageProcessor {
      *
      * @return string
      */
-    public function getFileName($baseName, $ext, $category = null)
+    public function getPublicPath($baseName, $ext, $category = null)
     {
         $category = $category ? $this->hash($baseName.$category) : $this->hash($baseName);
 
@@ -305,7 +321,7 @@ class ImageProcessor {
      *
      * @return string
      */
-    public function getFullFileName($src)
+    public function getFileName($src)
     {
         $src = public_path($src);
 
@@ -352,10 +368,12 @@ class ImageProcessor {
 
     /**
      * @param $image
+     *
+     * @return Image
      */
     protected function processUploadedImage(Image $image)
     {
-        $image->resize($this->maxWidth, $this->maxHeight, function (Constraint $constraint)
+        $image = $image->resize($this->maxWidth, $this->maxHeight, function (Constraint $constraint)
         {
             $constraint->aspectRatio();
             $constraint->upsize();
@@ -363,8 +381,25 @@ class ImageProcessor {
 
         if ($this->background)
         {
-            $image->resizeCanvas($image->width(), $image->height(), null, false, $this->background);
+            $image = $image->resizeCanvas($image->width(), $image->height(), null, false, $this->background);
         }
+
+        return $image;
+    }
+
+    /**
+     * @param string $src
+     * @param string $ext
+     *
+     * @return string
+     */
+    protected function getExtension($src, $ext)
+    {
+        if ($ext) return $ext;
+
+        if ($ext = pathinfo($src, PATHINFO_EXTENSION)) return $ext;
+
+        return 'jpg';
     }
 
 }

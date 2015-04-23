@@ -4,6 +4,7 @@ namespace Kalnoy\LaravelCommon\Html;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\UrlGenerator;
+use Illuminate\Session\SessionInterface;
 use Illuminate\Support\Contracts\ArrayableInterface;
 
 class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
@@ -15,16 +16,26 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
      */
     protected $request;
 
+    /**
+     * @var SessionInterface
+     */
     protected $session;
 
-    protected static $alerts = [ 'success', 'danger', 'warning', 'info' ];
+    /**
+     * @var array
+     */
+    protected static $alerts = [ 'success', 'danger', 'warning', 'info', 'error' => 'danger' ];
 
-    public function __construct(UrlGenerator $url, Request $request, $session)
+    /**
+     * @param UrlGenerator $url
+     * @param Request $request
+     */
+    public function __construct(UrlGenerator $url, Request $request)
     {
         parent::__construct($url);
 
         $this->request = $request;
-        $this->session = $session;
+        $this->session = $request->getSession();
     }
 
     /**
@@ -166,13 +177,18 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
     {
         $html = '';
 
-        foreach (self::$alerts as $alert)
+        foreach (self::$alerts as $alert => $class)
         {
+            if (is_numeric($alert))
+            {
+                $alert = $class;
+            }
+
             $key = $this->getAlertKey($alert, $domain);
 
             if ($value = $this->session->get($key))
             {
-                $html .= $this->alert($value, $alert, true).PHP_EOL;
+                $html .= $this->alert($value, $class, true).PHP_EOL;
             }
         }
 
@@ -219,6 +235,12 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
         return '<span class="glyphicon glyphicon-'.$name.'"></span>';
     }
 
+    /**
+     * @param $model
+     * @param $states
+     *
+     * @return string
+     */
     public function model_states($model, $states)
     {
         $states = is_array($states) ? $states : array($states);
@@ -231,6 +253,12 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
         return implode($states, ' ');
     }
 
+    /**
+     * @param $model
+     * @param $state
+     *
+     * @return mixed
+     */
     public function hasState($model, $state)
     {
         $method = 'is'.\Str::camel($state);
@@ -241,4 +269,21 @@ class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
 
         return $model->{$state};
     }
+
+    /**
+     * @param $skypeId
+     * @param string $label
+     * @param array $attributes
+     *
+     * @return string
+     */
+    public function skypeto($skypeId, $label = null, array $attributes = [ ])
+    {
+        if (is_null($label)) $label = $skypeId;
+
+        $attributes['href'] = 'skype:'.$skypeId.'?call';
+
+        return '<a'.$this->attributes($attributes).'>'.$label.'</a>';
+    }
+
 }
