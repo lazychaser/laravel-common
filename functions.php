@@ -85,11 +85,19 @@ if ( ! function_exists('normalize_string'))
     }
 }
 
-if ( ! function_exists('class_if'))
+if ( ! function_exists('value_if'))
 {
-    function class_if($bool, $class)
+    function value_if($bool, $value)
     {
-        return $bool ? $class : '';
+        return $bool ? $value : '';
+    }
+}
+
+if ( ! function_exists('value_unless'))
+{
+    function value_unless($bool, $value)
+    {
+        return $bool ? '' : $value;
     }
 }
 
