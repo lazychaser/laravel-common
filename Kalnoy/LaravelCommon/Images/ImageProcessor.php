@@ -384,7 +384,7 @@ class ImageProcessor {
             $image = $image->resizeCanvas($image->width(), $image->height(), null, false, $this->background);
         }
 
-        return $image;
+        return $image->orientate();
     }
 
     /**

@@ -28,17 +28,23 @@ class CropArea {
     protected $height;
 
     /**
+     * @var int
+     */
+    protected $rotate;
+
+    /**
      * @param int $x
      * @param int $y
      * @param int $width
      * @param int $height
      */
-    public function __construct($x, $y, $width, $height)
+    public function __construct($x, $y, $width, $height, $rotate = 0)
     {
         $this->x = (int)$x;
         $this->y = (int)$y;
         $this->width = (int)$width;
         $this->height = (int)$height;
+        $this->rotate = $rotate ? (int)$rotate : 0;
     }
 
     /**
@@ -50,9 +56,9 @@ class CropArea {
     {
         if (empty($value)) return null;
 
-        list($x, $y, $width, $height) = explode(',', $value, 4);
+        list($x, $y, $width, $height, $rotate) = explode(',', $value, 5);
 
-        return new static($x, $y, $width, $height);
+        return new static($x, $y, $width, $height, $rotate);
     }
 
     /**
@@ -62,6 +68,8 @@ class CropArea {
      */
     public function apply(Image $image)
     {
+        if ($this->rotate) $image = $image->rotate(-$this->getRotateAngle());
+
         return $image->crop($this->width, $this->height, $this->x, $this->y);
     }
 
@@ -71,6 +79,14 @@ class CropArea {
     public function getRatio()
     {
         return $this->width / (float)$this->height;
+    }
+
+    /**
+     * @return int
+     */
+    public function getRotateAngle()
+    {
+        return $this->rotate * 90;
     }
 
     /**
@@ -143,7 +159,7 @@ class CropArea {
     {
         if (count($data) < 4) return null;
 
-        return new static($data[0], $data[1], $data[2], $data[3]);
+        return new static($data[0], $data[1], $data[2], $data[3], isset($data[4]) ? $data[4] : 0);
     }
 
     /**
@@ -173,7 +189,7 @@ class CropArea {
      */
     public function toArray()
     {
-        return [ $this->x, $this->y, $this->width, $this->height ];
+        return [ $this->x, $this->y, $this->width, $this->height, $this->rotate ];
     }
 
 }
