@@ -13,7 +13,7 @@ use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
- * Image processor is reponsible for making avatars and thumbnails.
+ * Image processor is responsible for making avatars and thumbnails.
  */
 class ImageProcessor {
 
