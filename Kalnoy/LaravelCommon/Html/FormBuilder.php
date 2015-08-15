@@ -5,7 +5,7 @@ namespace Kalnoy\LaravelCommon\Html;
 /**
  * Form builder.
  */
-class FormBuilder extends \Illuminate\Html\FormBuilder {
+class FormBuilder extends \Collective\Html\FormBuilder {
 
     /**
      * Generate an id from name.
@@ -28,7 +28,7 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
      *
      * @return string
      */
-    public function label($name, $value = null, $options = [])            
+    public function label($name, $value = null, $options = [])
     {
         return parent::label($this->getIdFromName($name), $value, $options);
     }
@@ -48,10 +48,10 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 
     /**
      * Append some hidden fields. Multilevel arrays are supported.
-     * 
+     *
      * @param array $input
      * @param string $key
-     * 
+     *
      * @return string
      */
     public function appends(array $input, $key = '')
@@ -61,9 +61,9 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
         foreach ($input as $inner => $value)
         {
             if ($key === '_token') continue;
-            
+
             if ($key) $inner = $key.'['.$inner.']';
-            
+
             if (is_array($value))
             {
                 $html .= $this->appends($value, $inner);
