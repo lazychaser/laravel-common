@@ -152,6 +152,30 @@ if ( ! function_exists('parse_phone'))
     }
 }
 
+if ( ! function_exists('format_phone'))
+{
+    /**
+     * @param $phone
+     *
+     * @return null|string
+     */
+    function format_phone($phone)
+    {
+        if ( ! $phone = parse_phone($phone)) return null;
+
+        /**
+         * @var string $phoneNumber
+         * @var string $countryCode
+         * @var string $networkCode
+         */
+        extract($phone);
+
+        $phoneNumber = substr($phoneNumber, 0, 3).'-'.substr($phoneNumber, 3);
+
+        return $countryCode.' ('.$networkCode.') '.$phoneNumber;
+    }
+}
+
 if ( ! function_exists('partial_phone'))
 {
     /**

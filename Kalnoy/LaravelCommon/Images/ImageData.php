@@ -129,12 +129,26 @@ class ImageData implements Arrayable {
     }
 
     /**
+     * @param string $publicPath
+     *
+     * @return ImageData|null
+     */
+    public static function fromFile($publicPath)
+    {
+        if ( ! $image = getimagesize(public_path($publicPath))) return null;
+
+        return new static($publicPath, $image[0], $image[1]);
+    }
+
+    /**
      * @param $serialized
      *
      * @return null|ImageData
      */
     public static function unserialize($serialized)
     {
+        if ($serialized instanceof static) return $serialized;
+
         if (empty($serialized)) return null;
 
         list($path, $width, $height) = json_decode($serialized, true);
@@ -177,6 +191,14 @@ class ImageData implements Arrayable {
         array_unshift($parameters, $this);
 
         return call_user_func_array([ app('images'), $method ], $parameters);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    function __toString()
+    {
+        return $this->serialize();
     }
 
 }

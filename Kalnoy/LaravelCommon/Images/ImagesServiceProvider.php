@@ -12,7 +12,7 @@ class ImagesServiceProvider extends ServiceProvider {
 
     /**
      * {@inheritdoc}
-     */ 
+     */
     protected $defer = true;
 
     /**
@@ -20,9 +20,9 @@ class ImagesServiceProvider extends ServiceProvider {
      */
     public function register()
     {
-        $this->app->bindShared('images', function ($app)
+        $this->app->singleton('images', function ($app)
         {
-            return new ImageProcessor($app['image'], $app['files'], 'image_cache/v3');
+            return new ImageProcessor($app['image'], $app['files'], config('filesystems.images', 'image_cache'));
         });
     }
 
