@@ -5,7 +5,7 @@ namespace Kalnoy\LaravelCommon\Html;
 /**
  * Form builder.
  */
-class FormBuilder extends \Illuminate\Html\FormBuilder {
+class FormBuilder extends \Collective\Html\FormBuilder {
 
     /**
      * Generate an id from name.
@@ -28,7 +28,7 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
      *
      * @return string
      */
-    public function label($name, $value = null, $options = [])            
+    public function label($name, $value = null, $options = [])
     {
         return parent::label($this->getIdFromName($name), $value, $options);
     }
@@ -48,30 +48,30 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 
     /**
      * Append some hidden fields. Multilevel arrays are supported.
-     * 
+     *
      * @param array $input
-     * @param string $key
-     * 
+     * @param string $prefix
+     *
      * @return string
      */
-    public function appends(array $input, $key = '')
+    public function appends(array $input, $prefix = '')
     {
         $html = '';
 
-        foreach ($input as $inner => $value)
+        foreach ($input as $key => $value)
         {
             if ($key === '_token') continue;
-            
-            if ($key) $inner = $key.'['.$inner.']';
-            
+
+            if ($prefix) $key = $prefix.'['.$key.']';
+
             if (is_array($value))
             {
-                $html .= $this->appends($value, $inner);
+                $html .= $this->appends($value, $key);
 
                 continue;
             }
 
-            $html .= '<input type="hidden" name="'.$inner.'" value="'.$this->html->entities($value).'">'.PHP_EOL;
+            $html .= $this->hidden($key, $value).PHP_EOL;
         }
 
         return $html;
