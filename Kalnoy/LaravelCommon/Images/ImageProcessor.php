@@ -293,7 +293,7 @@ class ImageProcessor {
      *
      * @param UploadedFile $file
      *
-     * @return array
+     * @return ImageData
      */
     public function upload(UploadedFile $file)
     {

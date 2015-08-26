@@ -7,7 +7,7 @@ use Illuminate\Routing\UrlGenerator;
 use Illuminate\Session\SessionInterface;
 use Illuminate\Support\Contracts\ArrayableInterface;
 
-class HtmlBuilder extends \Illuminate\Html\HtmlBuilder {
+class HtmlBuilder extends \Collective\Html\HtmlBuilder {
 
     /**
      * The request.

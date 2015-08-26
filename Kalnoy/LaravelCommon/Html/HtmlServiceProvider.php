@@ -2,28 +2,7 @@
 
 namespace Kalnoy\LaravelCommon\Html;
 
-use Illuminate\Support\ServiceProvider;
-
-class HtmlServiceProvider extends ServiceProvider {
-
-    /**
-     * Indicates if loading of the provider is deferred.
-     *
-     * @var bool
-     */
-    protected $defer = true;
-
-    /**
-     * Register the service provider.
-     *
-     * @return void
-     */
-    public function register()
-    {
-        $this->registerHtmlBuilder();
-
-        $this->registerFormBuilder();
-    }
+class HtmlServiceProvider extends \Collective\Html\HtmlServiceProvider {
 
     /**
      * Register the HTML builder instance.
@@ -32,10 +11,12 @@ class HtmlServiceProvider extends ServiceProvider {
      */
     protected function registerHtmlBuilder()
     {
-        $this->app->bindShared('html', function ($app)
+        $this->app->singleton('html', function ($app)
         {
             return new HtmlBuilder($app['url'], $app['request'], $app['session.store']);
         });
+
+        $this->app->alias('html', 'Kalnoy\LaravelCommon\Html\HtmlBuilder');
     }
 
     /**
@@ -45,12 +26,14 @@ class HtmlServiceProvider extends ServiceProvider {
      */
     protected function registerFormBuilder()
     {
-        $this->app->bindShared('form', function ($app)
+        $this->app->singleton('form', function ($app)
         {
             $form = new FormBuilder($app['html'], $app['url'], $app['session.store']->getToken());
 
             return $form->setSessionStore($app['session.store']);
         });
+
+        $this->app->alias('form', 'Kalnoy\LaravelCommon\Html\FormBuilder');
     }
 
     /**
@@ -60,7 +43,11 @@ class HtmlServiceProvider extends ServiceProvider {
      */
     public function provides()
     {
-        return array('html', 'form');
+        return array_merge(parent::provides(), [
+
+            'Kalnoy\LaravelCommon\Html\HtmlBuilder',
+            'Kalnoy\LaravelCommon\Html\FormBuilder',
+        ]);
     }
 
 }
