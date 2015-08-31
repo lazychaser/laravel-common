@@ -4,7 +4,7 @@ namespace Kalnoy\LaravelCommon\Http\Middleware;
 
 use Closure;
 
-class TrimInput {
+class ProcessInput {
 
     /**
      * @var array
@@ -33,9 +33,26 @@ class TrimInput {
     {
         foreach ($data as $key => $value)
         {
-            $data[$key] = is_array($value) ? $this->walk($value) : trim($value);
+            $data[$key] = is_array($value) ? $this->walk($value) : $this->processValue($value);
         }
 
         return $data;
+    }
+
+    /**
+     * @param $value
+     *
+     * @return string
+     */
+    protected function processValue($value)
+    {
+        if (is_string($value))
+        {
+            $value = trim($value);
+
+            if ($value === '') return null;
+        }
+
+        return $value;
     }
 }
