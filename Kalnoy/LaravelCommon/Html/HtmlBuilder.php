@@ -2,10 +2,11 @@
 
 namespace Kalnoy\LaravelCommon\Html;
 
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Session\SessionInterface;
-use Illuminate\Support\Contracts\ArrayableInterface;
+use Illuminate\Support\Str;
 
 class HtmlBuilder extends \Collective\Html\HtmlBuilder {
 
@@ -149,7 +150,7 @@ class HtmlBuilder extends \Collective\Html\HtmlBuilder {
      */
     public function errors($messages)
     {
-        if ($messages instanceof ArrayableInterface)
+        if ($messages instanceof Arrayable)
         {
             $messages = $messages->toArray();
         }
@@ -261,7 +262,7 @@ class HtmlBuilder extends \Collective\Html\HtmlBuilder {
      */
     public function hasState($model, $state)
     {
-        $method = 'is'.\Str::camel($state);
+        $method = 'is'.Str::camel($state);
 
         if (method_exists($model, $method)) return $model->{$method}();
 

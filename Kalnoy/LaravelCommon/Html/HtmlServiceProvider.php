@@ -13,7 +13,7 @@ class HtmlServiceProvider extends \Collective\Html\HtmlServiceProvider {
     {
         $this->app->singleton('html', function ($app)
         {
-            return new HtmlBuilder($app['url'], $app['request'], $app['session.store']);
+            return new HtmlBuilder($app['url'], $app['request']);
         });
 
         $this->app->alias('html', 'Kalnoy\LaravelCommon\Html\HtmlBuilder');

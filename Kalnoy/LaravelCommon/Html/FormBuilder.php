@@ -76,4 +76,60 @@ class FormBuilder extends \Collective\Html\FormBuilder {
 
         return $html;
     }
+
+    /**
+     * @param string $type
+     * @param string $name
+     * @param string $label
+     * @param string $value
+     * @param bool $active
+     * @param array $attributes
+     *
+     * @return string
+     */
+    public function checkableButton($type, $name, $label, $value, $active = null, array $attributes = [ ])
+    {
+        $active = $this->getCheckedState($type, $name, $value, $active);
+
+        if ($active) $this->html->appendClass($attributes, 'active');
+
+        $attributes['name'] = $name;
+        $attributes['value'] = $value;
+
+        if ( ! array_key_exists('type', $attributes))
+        {
+            $attributes['type'] = 'submit';
+        }
+
+        return $this->button($label, $attributes);
+    }
+
+    /**
+     * @param string $name
+     * @param string $label
+     * @param string $value
+     * @param bool $active
+     * @param array $attributes
+     *
+     * @return string
+     */
+    public function radioButton($name, $label, $value, $active = null, array $attributes = [ ])
+    {
+        return $this->checkableButton('radio', $name, $label, $value, $active, $attributes);
+    }
+
+    /**
+     * @param string $name
+     * @param string $label
+     * @param string $value
+     * @param bool $active
+     * @param array $attributes
+     *
+     * @return string
+     */
+    public function checkboxButton($name, $label, $value, $active = null, array $attributes = [])
+    {
+        return $this->checkableButton('checkbox', $name, $label, $value, $active, $attributes);
+    }
+
 }
