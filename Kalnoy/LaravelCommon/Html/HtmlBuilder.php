@@ -287,4 +287,20 @@ class HtmlBuilder extends \Collective\Html\HtmlBuilder {
         return '<a'.$this->attributes($attributes).'>'.$label.'</a>';
     }
 
+    /**
+     * Display yandex map built in constructor.
+     *
+     * @param string $id
+     * @param array $options
+     *
+     * @return string
+     */
+    public function yandexMap($id, array $options = [ ])
+    {
+        $options['sid'] = $id;
+
+        $url = 'https://api-maps.yandex.ru/services/constructor/1.0/js/?'.http_build_query($options);
+
+        return $this->script($url);
+    }
 }
