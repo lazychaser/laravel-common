@@ -55,14 +55,13 @@ class ImageData implements Arrayable {
      * Render HTML element.
      *
      * @param string|null $alt
+     * @param array $attributes
      * @param bool $secure
      *
      * @return string
      */
-    public function img($alt = null, $secure = false)
+    public function img($alt = null, array $attributes = [], $secure = false)
     {
-        $attributes = [];
-
         if ($this->width) $attributes['width'] = $this->width;
         if ($this->height) $attributes['height'] = $this->height;
 
