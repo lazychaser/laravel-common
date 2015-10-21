@@ -107,11 +107,11 @@ class ImageData implements Arrayable {
      */
     public function ensureHasSize()
     {
-        if ($this->width !== null and $this->height !== null) return;
+        if ($this->width !== null && $this->height !== null) return;
 
         if (false === $data = getimagesize($this->getPath()))
         {
-            throw new \RuntimeException("Could not get the size of image.");
+            throw new \RuntimeException('Could not get the size of image.');
         }
 
         list($this->width, $this->height) = $data;
@@ -173,7 +173,7 @@ class ImageData implements Arrayable {
     public function toArray()
     {
         return [
-            'src' => $this->asset(),
+            'src' => $this->publicPath,
             'width' => $this->width,
             'height' => $this->height,
         ];

@@ -268,3 +268,19 @@ if ( ! function_exists('get_youtube_video_id'))
         return false;
     }
 }
+
+if ( ! function_exists('url_to'))
+{
+    /**
+     * @param object|null $entity
+     * @param array $params
+     *
+     * @return string|\Kalnoy\LaravelCommon\Http\UrlGenerator
+     */
+    function url_to($entity = null, array $params = [])
+    {
+        if (is_null($entity)) return app('url_to');
+
+        return app('url_to')->entity($entity, $params);
+    }
+}

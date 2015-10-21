@@ -244,7 +244,7 @@ class ImageProcessor {
     {
         if ($src instanceof ImageData) $src = $src->getPath();
 
-        if (empty($src) or ! $this->file->exists($src)) return false;
+        if (empty($src) || ! $this->file->exists($src)) return false;
 
         $image = $this->image->make($src);
 
