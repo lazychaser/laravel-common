@@ -156,9 +156,13 @@ class CropArea implements Arrayable
      */
     public static function fromArray(array $data)
     {
-        if (count($data) < 4) return null;
-
-        return new static($data[0], $data[1], $data[2], $data[3], isset($data[4]) ? $data[4] : 0);
+        return new static(
+            array_get($data, 'x', 0),
+            array_get($data, 'y', 0),
+            array_get($data, 'width', 0),
+            array_get($data, 'height', 0),
+            array_get($data, 'rotate', 0)
+        );
     }
 
     /**
