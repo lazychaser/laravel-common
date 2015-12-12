@@ -243,9 +243,9 @@ class CropArea implements Arrayable
      */
     public function eq(CropArea $other)
     {
-        return  $this->x == $other->x && $this->y == $other->y &&
-                $this->width == $other->width && $this->height == $other->height &&
-                $this->rotate == $other->rotate;
+        return $this->x == $other->x && $this->y == $other->y &&
+        $this->width == $other->width && $this->height == $other->height &&
+        $this->rotate == $other->rotate;
     }
 
     /**

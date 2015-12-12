@@ -12,8 +12,8 @@ use Illuminate\Contracts\Support\Arrayable;
  *
  * @package App\Images
  */
-class ImageData implements Arrayable {
-
+class ImageData implements Arrayable
+{
     /**
      * @var string
      */
@@ -60,7 +60,7 @@ class ImageData implements Arrayable {
      *
      * @return string
      */
-    public function img($alt = null, array $attributes = [], $secure = false)
+    public function img($alt = null, array $attributes = [ ], $secure = false)
     {
         if ($this->width) $attributes['width'] = $this->width;
         if ($this->height) $attributes['height'] = $this->height;
@@ -109,8 +109,7 @@ class ImageData implements Arrayable {
     {
         if ($this->width !== null && $this->height !== null) return;
 
-        if (false === $data = getimagesize($this->getPath()))
-        {
+        if (false === $data = getimagesize($this->getPath())) {
             throw new \RuntimeException('Could not get the size of image.');
         }
 

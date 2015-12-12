@@ -48,8 +48,7 @@ class Handler extends ExceptionHandler
         if ($e instanceof ValidationException) {
             $response = back()->withInput()->withErrors($e->errors());
 
-            if ($this->validationFailedMessage)
-            {
+            if ($this->validationFailedMessage) {
                 $response->with('warning', trans($this->validationFailedMessage));
             }
 

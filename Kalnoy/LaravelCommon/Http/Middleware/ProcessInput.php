@@ -4,8 +4,8 @@ namespace Kalnoy\LaravelCommon\Http\Middleware;
 
 use Closure;
 
-class ProcessInput {
-
+class ProcessInput
+{
     /**
      * @var array
      */
@@ -19,7 +19,7 @@ class ProcessInput {
     {
         $except = array_merge($this->except, array_slice(func_get_args(), 2));
 
-        $request->merge($this->walk($request->except($except)));
+        $request->merge($this->process($request->except($except)));
 
         return $next($request);
     }
@@ -29,25 +29,24 @@ class ProcessInput {
      *
      * @return array
      */
-    protected function walk(array $data)
+    protected function process(array $data)
     {
-        foreach ($data as $key => $value)
-        {
-            $data[$key] = is_array($value) ? $this->walk($value) : $this->processValue($value);
-        }
+        array_walk_recursive($data, function (&$value, $key) {
+            $value = $this->processValue($value, $key);
+        });
 
         return $data;
     }
 
     /**
-     * @param $value
+     * @param mixed $value
+     * @param string $key
      *
-     * @return string
+     * @return mixed
      */
-    protected function processValue($value)
+    protected function processValue($value, $key)
     {
-        if (is_string($value))
-        {
+        if (is_string($value)) {
             $value = trim($value);
 
             if ($value === '') return null;

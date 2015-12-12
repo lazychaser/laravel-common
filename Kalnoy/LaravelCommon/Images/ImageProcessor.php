@@ -15,8 +15,8 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 /**
  * Image processor is responsible for making avatars and thumbnails.
  */
-class ImageProcessor {
-
+class ImageProcessor
+{
     /**
      * The image processor.
      *
@@ -102,14 +102,13 @@ class ImageProcessor {
      */
     public function resize($image, $width, $height)
     {
-        return $this->process($image, [ $width, $height ], function ($image, $w, $h)
-        {
-            return $image->resize($w, $h, function (Constraint $constraint)
-            {
+        return $this->process($image, [ $width, $height ], function ($image, $w,
+                                                                     $h
+        ) {
+            return $image->resize($w, $h, function (Constraint $constraint) {
                 $constraint->aspectRatio();
                 $constraint->upsize();
             });
-
         }, 'resize');
     }
 
@@ -127,21 +126,17 @@ class ImageProcessor {
     {
         $params = [ $width, $height, $background ];
 
-        return $this->process($image, $params, function (Image $image, $w, $h, $bg)
-        {
-            $image = $image->resize($w, $h, function (Constraint $constraint)
-            {
+        return $this->process($image, $params, function (Image $image, $w, $h, $bg) {
+            $image = $image->resize($w, $h, function (Constraint $constraint) {
                 $constraint->aspectRatio();
                 $constraint->upsize();
             });
 
-            if ($image->width < $w or $image->height < $h)
-            {
+            if ($image->width < $w or $image->height < $h) {
                 $image = $image->resizeCanvas($w, $h, null, false, $bg);
             }
 
             return $image;
-
         }, 'fit');
     }
 
@@ -156,22 +151,18 @@ class ImageProcessor {
      */
     public function fitAspectRatio($image, $width, $ratio)
     {
-        return $this->process($image, [ $width, $ratio ], function (Image $image, $width, $ratio)
-        {
+        return $this->process($image, [ $width, $ratio ], function (Image $image, $width, $ratio) {
             $iRatio = $image->width() / ($ih = $image->height());
 
-            if ($iRatio > $ratio)
-            {
+            if ($iRatio > $ratio) {
                 $image->resizeCanvas(ceil($ih * $ratio), $ih, 'center');
             }
 
-            if ($image->width() > $width)
-            {
+            if ($image->width() > $width) {
                 $image->widen($width);
             }
 
             return $image;
-
         }, 'fitar');
     }
 
@@ -195,18 +186,16 @@ class ImageProcessor {
      *
      * @param string|ImageData $image
      * @param int $size
-     * @param int $x The x coordinate of the cropping center
-     * @param int $y The y coordinate of the cropping center
+     * @param int $x          The x coordinate of the cropping center
+     * @param int $y          The y coordinate of the cropping center
      * @param int $halfLength Half-length of the cropping square
      *
      * @return string
      */
     public function cropToFitSquare($image, $size, $x, $y, $halfLength)
     {
-        return $this->process($image, [ $size ], function (Image $image, $length) use ($x, $y, $halfLength)
-        {
+        return $this->process($image, [ $size ], function (Image $image, $length) use ($x, $y, $halfLength) {
             return $this->cropToFitSquareImage($image, $length, $x, $y, $halfLength);
-
         }, 'crop');
     }
 
@@ -219,8 +208,9 @@ class ImageProcessor {
      *
      * @return Image
      */
-    protected function cropToFitSquareImage(Image $image, $size, $x, $y, $halfLength)
-    {
+    protected function cropToFitSquareImage(Image $image, $size, $x, $y,
+                                            $halfLength
+    ) {
         $image = $image->crop($halfLength * 2, $halfLength * 2, $x - $halfLength, $y - $halfLength);
 
         // Resize to the given length allowing upsizing
@@ -240,16 +230,15 @@ class ImageProcessor {
      *
      * @throws Exception
      */
-    public function process($src, $params, $processor, $category = '', $ext = '')
-    {
+    public function process($src, $params, $processor, $category = '', $ext = ''
+    ) {
         if ($src instanceof ImageData) $src = $src->getPath();
 
         if (empty($src) || ! $this->file->exists($src)) return false;
 
         $image = $this->image->make($src);
 
-        try
-        {
+        try {
             array_unshift($params, $image);
 
             $image = call_user_func_array($processor, $params);
@@ -257,8 +246,7 @@ class ImageProcessor {
             $data = $this->save($image, $category.implode('', (array)$params), $src, $ext);
         }
 
-        finally
-        {
+        finally {
             $image->destroy();
         }
 
@@ -273,8 +261,8 @@ class ImageProcessor {
      *
      * @return ImageData
      */
-    protected function save(Image $image, $category = '', $src = '', $ext = null)
-    {
+    protected function save(Image $image, $category = '', $src = '', $ext = null
+    ) {
         $ext = $this->getExtension($src, $ext);
 
         $publicPath = $this->getPublicPath(str_random(8), $ext, $category);
@@ -297,7 +285,7 @@ class ImageProcessor {
      */
     public function upload(UploadedFile $file)
     {
-        return $this->process($file->getPathname(), [], [ $this, 'processUploadedImage' ], '', 'jpg');
+        return $this->process($file->getPathname(), [ ], [ $this, 'processUploadedImage' ], '', 'jpg');
     }
 
     /**
@@ -328,8 +316,7 @@ class ImageProcessor {
         $directory = pathinfo($src, PATHINFO_DIRNAME);
 
         // Make sure that target directory exists
-        if ( ! $this->file->isDirectory($directory))
-        {
+        if ( ! $this->file->isDirectory($directory)) {
             $this->file->makeDirectory($directory, 0777, true);
         }
 
@@ -373,14 +360,13 @@ class ImageProcessor {
      */
     protected function processUploadedImage(Image $image)
     {
-        $image = $image->resize($this->maxWidth, $this->maxHeight, function (Constraint $constraint)
-        {
+        $image = $image->resize($this->maxWidth, $this->maxHeight, function (Constraint $constraint
+        ) {
             $constraint->aspectRatio();
             $constraint->upsize();
         });
 
-        if ($this->background)
-        {
+        if ($this->background) {
             $image = $image->resizeCanvas($image->width(), $image->height(), null, false, $this->background);
         }
 

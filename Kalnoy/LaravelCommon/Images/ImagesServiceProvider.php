@@ -8,8 +8,8 @@ use Intervention\Image\Image;
 /**
  * Images service provider.
  */
-class ImagesServiceProvider extends ServiceProvider {
-
+class ImagesServiceProvider extends ServiceProvider
+{
     /**
      * {@inheritdoc}
      */
@@ -20,9 +20,10 @@ class ImagesServiceProvider extends ServiceProvider {
      */
     public function register()
     {
-        $this->app->singleton('images', function ($app)
-        {
-            return new ImageProcessor($app['image'], $app['files'], config('filesystems.images', 'image_cache'));
+        $this->app->singleton('images', function ($app) {
+            $path = config('filesystems.images', 'image_cache');
+
+            return new ImageProcessor($app['image'], $app['files'], $path);
         });
     }
 

@@ -4,8 +4,8 @@ namespace Kalnoy\LaravelCommon\Http\Middleware;
 
 use Closure;
 
-class ProtectFormInput {
-
+class ProtectFormInput
+{
     /**
      * @var array
      */
@@ -25,20 +25,16 @@ class ProtectFormInput {
      */
     public function handle($request, Closure $next)
     {
-        if ($request->isMethodSafe() || $request->ajax() || app()->isLocal())
-        {
+        if ($request->isMethodSafe() || $request->ajax() || app()->isLocal()) {
             return $next($request);
         }
 
-        try
-        {
+        try {
             return $next($request);
         }
 
-        catch (\Exception $e)
-        {
-            if (in_array(get_class($e), $this->except))
-            {
+        catch (\Exception $e) {
+            if (in_array(get_class($e), $this->except)) {
                 throw $e;
             }
 
