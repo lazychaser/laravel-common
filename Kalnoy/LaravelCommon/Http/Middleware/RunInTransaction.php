@@ -4,19 +4,19 @@ namespace Kalnoy\LaravelCommon\Http\Middleware;
 
 use Closure;
 
-class RunInTransaction {
-
+class RunInTransaction
+{
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Closure $next
+     *
      * @return mixed
      */
     public function handle($request, Closure $next)
     {
-        return \DB::transaction(function () use ($request, $next)
-        {
+        return \DB::transaction(function () use ($request, $next) {
             return $next($request);
         });
     }

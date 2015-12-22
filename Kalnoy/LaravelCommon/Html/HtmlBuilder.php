@@ -33,7 +33,7 @@ class HtmlBuilder extends \Collective\Html\HtmlBuilder {
      */
     public function __construct(UrlGenerator $url, Request $request)
     {
-        parent::__construct($url);
+        parent::__construct($url, app('view'));
 
         $this->request = $request;
         $this->session = $request->getSession();

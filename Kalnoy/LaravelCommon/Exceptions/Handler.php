@@ -3,37 +3,14 @@
 namespace Kalnoy\LaravelCommon\Exceptions;
 
 use Exception;
-use Illuminate\Contracts\Validation\ValidationException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Foundation\Validation\ValidationException;
+use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Handler extends ExceptionHandler
 {
     protected $validationFailedMessage;
-
-    /**
-     * Report or log an exception.
-     *
-     * This is a great spot to send exceptions to Sentry, Bugsnag, etc.
-     *
-     * @param  \Exception $e
-     *
-     * @return void
-     */
-    public function report(Exception $e)
-    {
-        if ($this->isHttpException($e) && $e->getStatusCode() == 404 ||
-            $e instanceof ModelNotFoundException
-        ) {
-            /** @var \Illuminate\Http\Request $request */
-            $request = app('request');
-
-            $this->log->error('Not found: '.$request->fullUrl());
-        } else {
-            parent::report($e);
-        }
-    }
 
     /**
      * Render an exception into an HTTP response.
@@ -46,29 +23,24 @@ class Handler extends ExceptionHandler
     public function render($request, Exception $e)
     {
         if ($e instanceof ValidationException) {
-            $response = back()->withInput()->withErrors($e->errors());
-
-            if ($this->validationFailedMessage) {
-                $response->with('warning', trans($this->validationFailedMessage));
-            }
-
-            return $this->toIlluminateResponse($response, $e);
-        } elseif ($e instanceof ModelNotFoundException) {
-            $e = new NotFoundHttpException($e->getMessage(), $e);
+            $this->addFailedValidationAlert($e);
         }
 
-        if ($this->isHttpException($e)) {
-            if ($this->isNonTextRequest($request)) {
-                return $this->toIlluminateResponse(
-                    response('', $e->getStatusCode()),
-                    $e
-                );
-            }
+        return parent::render($request, $e);
+    }
 
-            return $this->renderHttpException($e);
-        } else {
-            return parent::render($request, $e);
+    /**
+     * @param HttpException $e
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function renderHttpException(HttpException $e)
+    {
+        if ($this->isNonTextRequest(app('request'))) {
+            return response('', $e->getStatusCode());
         }
+
+        return parent::renderHttpException($e);
     }
 
     /**
@@ -81,6 +53,22 @@ class Handler extends ExceptionHandler
         if ($request->ajax()) return true;
 
         return ! in_array('text/html', $request->getAcceptableContentTypes());
+    }
+
+    /**
+     * @param ValidationException $e
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function addFailedValidationAlert(ValidationException $e)
+    {
+        if (! $this->validationFailedMessage) return;
+
+        $response = $e->getResponse();
+
+        if ( ! $response instanceof JsonResponse) {
+            $response->with('warning', trans($this->validationFailedMessage));
+        }
     }
 
 }
