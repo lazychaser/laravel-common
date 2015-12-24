@@ -145,13 +145,17 @@ class ImageData implements Arrayable
      */
     public static function unserialize($serialized)
     {
-        if ($serialized instanceof static) return $serialized;
+        if ($serialized instanceof static) {
+            return $serialized;
+        }
 
-        if (empty($serialized)) return null;
+        if ( ! $serialized || ! ($data = json_decode($serialized, true))
+            || count($data) < 3
+        ) {
+            return null;
+        }
 
-        list($path, $width, $height) = json_decode($serialized, true);
-
-        return new static($path, $width, $height);
+        return new static($data[0], $data[1], $data[2]);
     }
 
     /**
