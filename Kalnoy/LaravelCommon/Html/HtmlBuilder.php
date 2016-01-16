@@ -6,16 +6,10 @@ use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Session\SessionInterface;
+use Illuminate\Session\Store;
 use Illuminate\Support\Str;
 
 class HtmlBuilder extends \Collective\Html\HtmlBuilder {
-
-    /**
-     * The request.
-     *
-     * @var \Illuminate\Http\Request
-     */
-    protected $request;
 
     /**
      * @var SessionInterface
@@ -31,12 +25,11 @@ class HtmlBuilder extends \Collective\Html\HtmlBuilder {
      * @param UrlGenerator $url
      * @param Request $request
      */
-    public function __construct(UrlGenerator $url, Request $request)
+    public function __construct(UrlGenerator $url, SessionInterface $session)
     {
         parent::__construct($url, app('view'));
 
-        $this->request = $request;
-        $this->session = $request->getSession();
+        $this->session = $session;
     }
 
     /**
