@@ -1,0 +1,23 @@
+{
+    "name": "kalnoy/laravel-common",
+
+    "description": "A set of useful classes for any laravel project",
+
+    "license": "MIT",
+
+    "authors": [
+        {
+            "name": "Aleksander Kalnoy",
+            "email": "lazychaser@gmail.com"
+        }
+    ],
+
+    "minimum-stability": "stable",
+
+    "require": {},
+
+    "autoload": {
+        "psr-4": { "Kalnoy\\LaravelCommon\\": "src/" },
+        "files": [ "src/Service/functions.php" ]
+    }
+}
