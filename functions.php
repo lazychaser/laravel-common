@@ -161,14 +161,16 @@ if ( ! function_exists('format_phone'))
      */
     function format_phone($phone)
     {
-        if ( ! $phone = parse_phone($phone)) return null;
+        if ( ! $parsed = parse_phone($phone)) {
+            return $phone;
+        }
 
         /**
          * @var string $phoneNumber
          * @var string $countryCode
          * @var string $networkCode
          */
-        extract($phone);
+        extract($parsed);
 
         $phoneNumber = substr($phoneNumber, 0, 3).'-'.substr($phoneNumber, 3);
 
