@@ -17,9 +17,9 @@ trait HasFlags
         $flags = $this->getFlags();
 
         if ($value) {
-            $flags |= (1 << $flag);
+            $flags |= $flag;
         } else {
-            $flags &= ~(1 << $flag);
+            $flags &= ~$flag;
         }
 
         $this->attributes[$this->getFlagsName()] = $flags;
@@ -34,7 +34,7 @@ trait HasFlags
      */
     public function getFlag($flag)
     {
-        return ($this->getFlags() & (1 << $flag)) > 0;
+        return ($this->getFlags() & $flag) > 0;
     }
 
     /**
