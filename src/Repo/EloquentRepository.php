@@ -2,6 +2,7 @@
 
 namespace Kalnoy\LaravelCommon\Repo;
 
+use App\Repo\CallsRepo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Kalnoy\LaravelCommon\DataMapping\DataSources\Xml\Collection;
@@ -49,5 +50,25 @@ class EloquentRepository
         }
 
         return $items;
+    }
+
+    /**
+     * @param Builder $query
+     * @param $attr
+     * @param $value
+     *
+     * @return CallsRepo
+     */
+    protected function filterByAttr(Builder $query, $attr, $value)
+    {
+        if ($value) {
+            if (is_array($value)) {
+                $query->whereIn($attr, $value);
+            } else {
+                $query->where($attr, $value);
+            }
+        }
+
+        return $this;
     }
 }
