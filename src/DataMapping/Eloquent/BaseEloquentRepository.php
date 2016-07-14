@@ -14,6 +14,11 @@ abstract class BaseEloquentRepository extends AbstractEloquentRepository
     protected $loaded = [];
 
     /**
+     * @var array
+     */
+    public $eager = [];
+
+    /**
      * @inheritDoc
      */
     public function find($key)
@@ -102,6 +107,7 @@ abstract class BaseEloquentRepository extends AbstractEloquentRepository
     {
         return $this->newQuery()
                     ->whereIn($this->primaryKey(), $keys)
+                    ->with($this->eager)
                     ->get($this->processColumns($this->columns));
     }
 
@@ -137,6 +143,18 @@ abstract class BaseEloquentRepository extends AbstractEloquentRepository
         foreach ((array)$model as $item) {
             $this->loaded[$item->getAttributeValue($pk)] = $item;
         }
+
+        return $this;
+    }
+
+    /**
+     * @param array $relations
+     *
+     * @return $this
+     */
+    public function eager(array $relations)
+    {
+        $this->eager = $relations;
 
         return $this;
     }
