@@ -60,7 +60,7 @@ class EloquentRepository
      *
      * @return $this
      */
-    protected function filterByAttr(Builder $query, $attr, $value, $op = '=')
+    protected function filterByAttr($query, $attr, $value, $op = '=')
     {
         if (is_null($value)) {
             return $this;
