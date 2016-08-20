@@ -3,7 +3,7 @@
 namespace Kalnoy\LaravelCommon\Repo;
 
 use App\Repo\CallsRepo;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Kalnoy\LaravelCommon\DataMapping\DataSources\Xml\Collection;
 
@@ -56,17 +56,20 @@ class EloquentRepository
      * @param Builder $query
      * @param $attr
      * @param $value
+     * @param string $op
      *
-     * @return CallsRepo
+     * @return $this
      */
-    protected function filterByAttr(Builder $query, $attr, $value)
+    protected function filterByAttr(Builder $query, $attr, $value, $op = '=')
     {
-        if ($value) {
-            if (is_array($value)) {
-                $query->whereIn($attr, $value);
-            } else {
-                $query->where($attr, $value);
-            }
+        if (is_null($value)) {
+            return $this;
+        }
+
+        if (is_array($value)) {
+            $query->whereIn($attr, $value);
+        } else {
+            $query->where($attr, $op, $value);
         }
 
         return $this;
