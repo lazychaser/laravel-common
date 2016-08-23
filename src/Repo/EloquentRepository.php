@@ -3,7 +3,7 @@
 namespace Kalnoy\LaravelCommon\Repo;
 
 use App\Repo\CallsRepo;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Kalnoy\LaravelCommon\DataMapping\DataSources\Xml\Collection;
 
