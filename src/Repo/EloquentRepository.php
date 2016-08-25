@@ -6,6 +6,7 @@ use App\Repo\CallsRepo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Kalnoy\LaravelCommon\DataMapping\DataSources\Xml\Collection;
+use Symfony\Component\HttpFoundation\ParameterBag;
 
 /**
  * Class EloquentRepository
@@ -70,6 +71,28 @@ class EloquentRepository
             $query->whereIn($attr, $value);
         } else {
             $query->where($attr, $op, $value);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param Builder $query
+     * @param $attribute
+     *
+     * @param ParameterBag $input
+     *
+     * @return CallsRepo
+     */
+    protected function filterByPeriod(Builder $query, $attribute,
+                                      ParameterBag $input
+    ) {
+        if ($date = $input->get('from')) {
+            $query->where($attribute, '>=', $date);
+        }
+
+        if ($date = $input->get('to')) {
+            $query->where($attribute, '<=', $date);
         }
 
         return $this;
