@@ -128,7 +128,7 @@ class EloquentRepository
         if ($date = $input->get('to')) {
             try {
                 return Carbon::createFromFormat('Y-m-d', $date, 'Europe/Moscow')
-                              ->setTime(0, 0, 0);
+                              ->setTime(23, 59, 59);
             }
 
             catch (\Exception $e) {}
