@@ -3,6 +3,7 @@
 namespace Kalnoy\LaravelCommon\Repo;
 
 use App\Repo\CallsRepo;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Kalnoy\LaravelCommon\DataMapping\DataSources\Xml\Collection;
@@ -82,19 +83,57 @@ class EloquentRepository
      *
      * @param ParameterBag $input
      *
-     * @return CallsRepo
+     * @return $this
      */
     protected function filterByPeriod(Builder $query, $attribute,
                                       ParameterBag $input
     ) {
-        if ($date = $input->get('from')) {
+        if ($date = $this->getPeriodFrom($input)) {
             $query->where($attribute, '>=', $date);
         }
 
-        if ($date = $input->get('to')) {
+        if ($date = $this->getPeriodTo($input)) {
             $query->where($attribute, '<=', $date);
         }
 
         return $this;
+    }
+
+    /**
+     * @param ParameterBag $input
+     *
+     * @return Carbon|null
+     */
+    protected function getPeriodFrom(ParameterBag $input)
+    {
+        if ($date = $input->get('from')) {
+            try {
+                return Carbon::createFromFormat('Y-m-d', $date, 'Europe/Moscow')
+                              ->setTime(0, 0, 0);
+            }
+
+            catch (\Exception $e) {}
+        }
+
+        return null;
+    }
+
+    /**
+     * @param ParameterBag $input
+     *
+     * @return Carbon|null
+     */
+    protected function getPeriodTo(ParameterBag $input)
+    {
+        if ($date = $input->get('to')) {
+            try {
+                return Carbon::createFromFormat('Y-m-d', $date, 'Europe/Moscow')
+                              ->setTime(0, 0, 0);
+            }
+
+            catch (\Exception $e) {}
+        }
+
+        return null;
     }
 }
