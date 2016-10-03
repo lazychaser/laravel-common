@@ -55,7 +55,7 @@ class EloquentRepository
     }
 
     /**
-     * @param Builder $query
+     * @param mixed $query
      * @param $attr
      * @param $value
      * @param string $op
@@ -78,16 +78,15 @@ class EloquentRepository
     }
 
     /**
-     * @param Builder $query
+     * @param mixed $query
      * @param $attribute
      *
      * @param ParameterBag $input
      *
      * @return $this
      */
-    protected function filterByPeriod(Builder $query, $attribute,
-                                      ParameterBag $input
-    ) {
+    protected function filterByPeriod($query, $attribute, ParameterBag $input)
+    {
         if ($date = $this->getPeriodFrom($input)) {
             $query->where($attribute, '>=', $date);
         }
