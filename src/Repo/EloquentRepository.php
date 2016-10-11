@@ -2,7 +2,6 @@
 
 namespace Kalnoy\LaravelCommon\Repo;
 
-use App\Repo\CallsRepo;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
