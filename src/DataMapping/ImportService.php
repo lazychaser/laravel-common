@@ -81,6 +81,10 @@ class ImportService
             }
         }
 
+        catch (\Exception $e) {
+            $this->log->addError($this->formatException($e));
+        }
+
         finally {
             $this->dataSource->stop();
         }
@@ -105,8 +109,7 @@ class ImportService
 
         $items = $this->importer->startBatch($items);
 
-        $stats = new ImportStats;
-        $models = [ ];
+        $result = new ImportStats;
 
         foreach ($items as $item) {
             try {
@@ -114,31 +117,27 @@ class ImportService
                                                  $this->attributes,
                                                  $this->mode);
 
-                if ($model) {
-                    $models[] = $model;
-                }
-
-                $model ? $stats->imported() : $stats->skipped();
+                $result->imported($model);
             }
 
             catch (\Exception $e) {
                 $this->log->addError($this->formatException($e));
 
-                $stats->errored();
+                $result->errored();
             }
         }
 
         $this->importer->endBatch();
 
-        event(new BatchWasImported($this, $stats, $models));
+        event(new BatchWasImported($this, $result));
 
-        $this->log->info('Batch done.', compact('stats'));
+        $this->log->info('Batch done.', compact('result'));
 
-        return $stats;
+        return $result;
     }
 
     /**
-     * @return Logger
+     * @return void
      */
     protected function ensureLogger()
     {

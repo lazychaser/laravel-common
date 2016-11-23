@@ -68,11 +68,7 @@ class EloquentImporter implements Importer
 
         $this->validate($key, $data);
 
-        $this->fill($model, $data, $attributes);
-
-        if ( ! $model->exists || $model->isDirty()) {
-            $model->save();
-
+        if ($this->save($model, $data, $attributes)) {
             event(new ModelWasImported($model));
         }
 
@@ -107,6 +103,20 @@ class EloquentImporter implements Importer
         }
 
         return $model;
+    }
+
+    /**
+     * @param Model $model
+     * @param array $data
+     * @param $attributes
+     *
+     * @return bool
+     */
+    protected function save($model, array $data, $attributes)
+    {
+        $this->fill($model, $data, $attributes);
+
+        return $model->save();
     }
 
     /**
@@ -202,6 +212,8 @@ class EloquentImporter implements Importer
 
     /**
      * Indicate that batch import has ended.
+     *
+     * @internal param Collection $items
      */
     public function endBatch()
     {

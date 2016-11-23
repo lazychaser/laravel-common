@@ -25,14 +25,12 @@ abstract class BaseEloquentRepository extends AbstractEloquentRepository
     {
         $original = $key;
 
-        if ($this->slugKey) {
-            $key = str_slug($key);
-        }
+        $key = $this->hashFromKey($key);
 
         if (empty($key)) return null;
 
         if ( ! array_key_exists($key, $this->loaded)) {
-            $this->preload($original);
+            $this->preload([ $original ]);
         }
 
         return $this->loaded[$key];
@@ -75,13 +73,10 @@ abstract class BaseEloquentRepository extends AbstractEloquentRepository
             $keys = (array)$keys;
         }
 
-        if ($this->slugKey) {
-            $keys = array_map('str_slug', $keys);
-        }
-
         $keys = array_filter($keys);
+        $keys = array_combine(array_map([ $this, 'hashFromKey' ], $keys), $keys);
 
-        $missing = array_combine($keys, array_pad([ ], count($keys), false));
+        $missing = array_combine(array_keys($keys), array_pad([ ], count($keys), false));
 
         $missing = array_diff_key($missing, $this->loaded);
 
@@ -90,7 +85,7 @@ abstract class BaseEloquentRepository extends AbstractEloquentRepository
             // considered missing if they aren't present in database
             $this->loaded += $missing;
 
-            $models = $this->fetchModels(array_keys($missing));
+            $models = $this->fetchModels(array_intersect_key($keys, $missing));
 
             $this->add($models);
         }
@@ -138,10 +133,9 @@ abstract class BaseEloquentRepository extends AbstractEloquentRepository
             $model = [ $model ];
         }
 
-        $pk = $this->primaryKey();
-
-        foreach ((array)$model as $item) {
-            $this->loaded[$item->getAttributeValue($pk)] = $item;
+        foreach ($model as $item) {
+            $hash = $this->hashFromModel($item);
+            $this->loaded[$hash] = $item;
         }
 
         return $this;
@@ -165,6 +159,26 @@ abstract class BaseEloquentRepository extends AbstractEloquentRepository
     public function getLoaded()
     {
         return (new EloquentCollection($this->loaded))->filter();
+    }
+
+    /**
+     * @param $key
+     *
+     * @return string
+     */
+    public function hashFromKey($key)
+    {
+        return $this->slugKey ? str_slug($key) : $key;
+    }
+
+    /**
+     * @param Model $item
+     *
+     * @return string
+     */
+    public function hashFromModel($item)
+    {
+        return $item->getAttributeValue($this->primaryKey());
     }
 
 }

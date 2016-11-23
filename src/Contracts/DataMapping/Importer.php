@@ -15,8 +15,8 @@ interface Importer
      *
      * @return mixed
      */
-    public function import(array $data, 
-                           $attributes = null, 
+    public function import(array $data,
+                           $attributes = null,
                            $mode = Repository::ALL);
 
     /**
@@ -30,6 +30,8 @@ interface Importer
 
     /**
      * Indicate that batch import has ended.
+     *
+     * @return void
      */
     public function endBatch();
 

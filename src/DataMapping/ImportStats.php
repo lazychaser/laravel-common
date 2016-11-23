@@ -2,6 +2,8 @@
 
 namespace Kalnoy\LaravelCommon\DataMapping;
 
+use Illuminate\Support\Collection;
+
 class ImportStats
 {
     /**
@@ -12,12 +14,20 @@ class ImportStats
     /**
      * @var int
      */
-    public $imported = 0;
+    public $skipped = 0;
 
     /**
-     * @var int
+     * @var Collection
      */
-    public $skipped = 0;
+    public $importedItems;
+
+    /**
+     * ImportStats constructor.
+     */
+    public function __construct()
+    {
+        $this->importedItems = new Collection();
+    }
 
     /**
      * Increment errored items.
@@ -28,19 +38,15 @@ class ImportStats
     }
 
     /**
-     * Increment skipped items.
-     */
-    public function skipped()
-    {
-        $this->skipped++;
-    }
-
-    /**
      * Increment imported items.
      */
-    public function imported()
+    public function imported($item)
     {
-        $this->imported++;
+        if ($item) {
+            $this->importedItems->push($item);
+        } else {
+            $this->skipped++;
+        }
     }
 
     /**
@@ -48,7 +54,7 @@ class ImportStats
      */
     public function getTotal()
     {
-        return $this->imported + $this->skipped + $this->errored;
+        return $this->importedItems->count() + $this->skipped + $this->errored;
     }
 
     /**
@@ -57,8 +63,9 @@ class ImportStats
     public function merge(ImportStats $stats)
     {
         $this->errored += $stats->errored;
-        $this->imported += $stats->imported;
         $this->skipped += $stats->skipped;
+
+        $this->importedItems = $this->importedItems->merge($stats->importedItems);
     }
 
     /**
@@ -68,7 +75,7 @@ class ImportStats
     {
         return
             'Processed: '.$this->getTotal().PHP_EOL.
-            'Imported: '.$this->imported.PHP_EOL.
+            'Imported: '.$this->importedItems->count().PHP_EOL.
             'Skipped: '.$this->skipped.PHP_EOL.
             'Errored: '.$this->errored;
     }
