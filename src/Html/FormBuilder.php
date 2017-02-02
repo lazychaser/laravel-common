@@ -29,9 +29,9 @@ class FormBuilder extends \Collective\Html\FormBuilder
      *
      * @return string
      */
-    public function label($name, $value = null, $options = [ ])
+    public function label($name, $value = null, $options = [ ], $escape_html = true)
     {
-        return parent::label($this->getIdFromName($name), $value, $options);
+        return parent::label($this->getIdFromName($name), $value, $options, $escape_html);
     }
 
     /**
