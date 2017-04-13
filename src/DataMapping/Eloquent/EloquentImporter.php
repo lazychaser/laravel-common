@@ -2,6 +2,7 @@
 
 namespace Kalnoy\LaravelCommon\DataMapping\Eloquent;
 
+use Illuminate\Support\Arr;
 use Kalnoy\LaravelCommon\Contracts\DataMapping\Attribute;
 use Kalnoy\LaravelCommon\Contracts\DataMapping\Attribute as AttributeContract;
 use Kalnoy\LaravelCommon\Contracts\DataMapping\Importer;
@@ -57,16 +58,17 @@ class EloquentImporter implements Importer
     /**
      * @inheritdoc
      */
-    public function import(array $data, $attributes = null,
-                           $mode = Repository::ALL
-    ) {
-        if ( ! ($key = array_get($data, $this->primaryKey())) ||
-            ! ($model = $this->repository->retrieve($key, $mode))
-        ) {
+    public function import(array $data, $attributes = null, $mode = Repository::ALL)
+    {
+        if ( ! $key = $this->itemKey($data)) {
             return false;
         }
 
         $this->validate($key, $data);
+
+        if ( ! $model = $this->repository->retrieve($key, $mode)) {
+            return false;
+        }
 
         if ($this->save($model, $data, $attributes)) {
             event(new ModelWasImported($model));
@@ -126,7 +128,7 @@ class EloquentImporter implements Importer
      */
     protected function preloadModels(Collection $items)
     {
-        $this->repository->preload($items->pluck($this->primaryKey())->all());
+        $this->repository->preload($this->itemsKeys($items));
 
         return $this;
     }
@@ -266,5 +268,27 @@ class EloquentImporter implements Importer
     public function getRepository()
     {
         return $this->repository;
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return mixed
+     */
+    protected function itemKey(array $data)
+    {
+        return Arr::get($data, $this->primaryKey());
+    }
+
+    /**
+     * @param Collection $items
+     *
+     * @return array
+     */
+    protected function itemsKeys(Collection $items)
+    {
+        return $items
+            ->map(function ($data) { return $this->itemKey($data); })
+            ->all();
     }
 }

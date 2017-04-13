@@ -21,6 +21,7 @@ class BasicAttribute extends AbstractAttribute
      */
     public function preload(Collection $items)
     {
+        return $this;
     }
 
     /**

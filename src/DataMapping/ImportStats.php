@@ -2,6 +2,7 @@
 
 namespace Kalnoy\LaravelCommon\DataMapping;
 
+use Illuminate\Contracts\Support\MessageBag;
 use Illuminate\Support\Collection;
 
 class ImportStats
@@ -22,11 +23,17 @@ class ImportStats
     public $importedItems;
 
     /**
+     * @var Collection
+     */
+    public $validationErrors;
+
+    /**
      * ImportStats constructor.
      */
     public function __construct()
     {
         $this->importedItems = new Collection();
+        $this->validationErrors = new Collection();
     }
 
     /**
@@ -35,6 +42,15 @@ class ImportStats
     public function errored()
     {
         $this->errored++;
+    }
+
+    /**
+     * @param $row
+     * @param MessageBag $errors
+     */
+    public function validationFailed($row, MessageBag $errors)
+    {
+        $this->validationErrors->put($row, $errors);
     }
 
     /**
@@ -54,7 +70,10 @@ class ImportStats
      */
     public function getTotal()
     {
-        return $this->importedItems->count() + $this->skipped + $this->errored;
+        return $this->importedItems->count()
+            + $this->skipped
+            + $this->errored
+            + $this->validationErrors->count();
     }
 
     /**
@@ -66,6 +85,7 @@ class ImportStats
         $this->skipped += $stats->skipped;
 
         $this->importedItems = $this->importedItems->merge($stats->importedItems);
+        $this->validationErrors = $this->validationErrors->merge($stats->validationErrors);
     }
 
     /**
@@ -77,6 +97,7 @@ class ImportStats
             'Processed: '.$this->getTotal().PHP_EOL.
             'Imported: '.$this->importedItems->count().PHP_EOL.
             'Skipped: '.$this->skipped.PHP_EOL.
-            'Errored: '.$this->errored;
+            'Errored: '.$this->errored.PHP_EOL.
+            'Invalid: '.$this->validationErrors->count();
     }
 }

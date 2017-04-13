@@ -73,7 +73,7 @@ class CSV implements DataSource
     public function get($limit = 100)
     {
         if ( ! $this->f) {
-            $this->start();
+            throw new \RuntimeException('Please start data source reading first.');
         }
 
         $data = new Collection;
@@ -188,7 +188,7 @@ class CSV implements DataSource
             return [ 'title' => trim($matches[1]), 'key' => $matches[2], 'index' => $index ];
         }
 
-        return false;
+        return [ 'key' => $value, 'index' => $index ];
     }
 
     /**
