@@ -146,7 +146,7 @@ if ( ! function_exists('parse_phone'))
         $phoneNumber = substr($phone, -7);
         $countryCode = substr($phone, 0, -10);
 
-        if ($countryCode = 8) $countryCode = '+7';
+        if ($countryCode === '8') $countryCode = '+7';
 
         return compact('countryCode', 'networkCode', 'phoneNumber');
     }
